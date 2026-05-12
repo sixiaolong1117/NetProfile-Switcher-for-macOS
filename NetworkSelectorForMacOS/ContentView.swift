@@ -42,6 +42,10 @@ struct NetworkService: Identifiable, Equatable {
 struct ContentView: View {
     @AppStorage("networkServiceName") private var serviceName = "Wi-Fi"
     @AppStorage("networkProfiles") private var storedProfiles = "[]"
+    @AppStorage("showDisabledNetworkServices") private var showDisabledNetworkServices = true
+    @AppStorage("refreshNetworkServicesOnLaunch") private var refreshNetworkServicesOnLaunch = true
+    @AppStorage("defaultSubnetMask") private var defaultSubnetMask = "255.255.255.0"
+    @AppStorage("appLanguage") private var appLanguage = AppLanguage.system.rawValue
 
     @State private var networkServices: [NetworkService] = []
     @State private var profiles: [NetworkProfile] = []
@@ -78,12 +82,22 @@ struct ContentView: View {
         .frame(minWidth: 560, minHeight: 420)
         .onAppear {
             loadProfiles()
-            loadNetworkServices()
+            if refreshNetworkServicesOnLaunch {
+                loadNetworkServices()
+            }
+        }
+        .onChange(of: showDisabledNetworkServices) {
+            if !visibleNetworkServices.contains(where: { $0.name == serviceName }) {
+                serviceName = visibleNetworkServices.first?.name ?? serviceName
+            }
         }
         .sheet(isPresented: $isEditorPresented) {
             NetworkProfileEditor(
-                title: editingProfileID == nil ? "New Configuration" : "Edit Configuration",
+                title: editingProfileID == nil
+                    ? text("configuration.new")
+                    : text("configuration.edit"),
                 profile: $draftProfile,
+                languageSetting: appLanguage,
                 onCancel: {
                     isEditorPresented = false
                 },
@@ -101,27 +115,27 @@ struct ContentView: View {
                 .foregroundStyle(.tint)
 
             VStack(alignment: .leading, spacing: 2) {
-                Text("Network Switcher")
+                Text(text("title"))
                     .font(.title2)
                     .fontWeight(.semibold)
 
-                Text("Static profiles and DHCP for local network services")
+                Text(text("subtitle"))
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
 
             Spacer(minLength: 12)
 
-            Text("Network")
+            Text(text("network.label"))
                 .font(.caption)
                 .foregroundStyle(.secondary)
 
-            Picker("Network", selection: $serviceName) {
-                if networkServices.isEmpty {
-                    Text(serviceName.isEmpty ? "No Services" : serviceName)
+            Picker(text("network.label"), selection: $serviceName) {
+                if visibleNetworkServices.isEmpty {
+                    Text(serviceName.isEmpty ? text("network.noServices") : serviceName)
                         .tag(serviceName)
                 } else {
-                    ForEach(networkServices) { service in
+                    ForEach(visibleNetworkServices) { service in
                         Text(service.displayName)
                             .tag(service.name)
                     }
@@ -129,7 +143,7 @@ struct ContentView: View {
             }
             .labelsHidden()
             .frame(minWidth: 150, idealWidth: 180)
-            .disabled(isLoadingServices || networkServices.isEmpty)
+            .disabled(isLoadingServices || visibleNetworkServices.isEmpty)
 
             Button {
                 loadNetworkServices()
@@ -147,7 +161,7 @@ struct ContentView: View {
     var profileList: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Text("Configurations")
+                Text(text("configuration.title"))
                     .font(.headline)
                     .fontWeight(.semibold)
 
@@ -167,7 +181,7 @@ struct ContentView: View {
                 emptyList
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .contextMenu {
-                        Button("Add Configuration") {
+                        Button(text("configuration.add")) {
                             addProfile()
                         }
                     }
@@ -177,17 +191,17 @@ struct ContentView: View {
                         ForEach(profiles) { profile in
                             profileRow(profile)
                                 .contextMenu {
-                                    Button("Edit Configuration") {
+                                    Button(text("configuration.edit")) {
                                         editProfile(profile)
                                     }
 
-                                    Button("Duplicate Configuration") {
+                                    Button(text("configuration.duplicate")) {
                                         duplicateProfile(profile)
                                     }
 
                                     Divider()
 
-                                    Button("Delete Configuration", role: .destructive) {
+                                    Button(text("configuration.delete"), role: .destructive) {
                                         deleteProfile(profile)
                                     }
                                 }
@@ -198,7 +212,7 @@ struct ContentView: View {
                     .frame(maxWidth: .infinity, alignment: .top)
                 }
                 .contextMenu {
-                    Button("Add Configuration") {
+                    Button(text("configuration.add")) {
                         addProfile()
                     }
                 }
@@ -213,7 +227,7 @@ struct ContentView: View {
                 .font(.largeTitle)
                 .foregroundStyle(.tertiary)
 
-            Text("No Configurations")
+            Text(text("configuration.empty"))
                 .font(.headline)
                 .foregroundStyle(.secondary)
         }
@@ -229,11 +243,11 @@ struct ContentView: View {
                     .frame(width: 20)
 
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(profile.name.isEmpty ? "Untitled" : profile.name)
+                    Text(profile.name.isEmpty ? text("configuration.untitled") : profile.name)
                         .fontWeight(.medium)
                         .lineLimit(1)
 
-                    Text(profile.ipAddress.isEmpty ? "No IP address" : profile.ipAddress)
+                    Text(profile.ipAddress.isEmpty ? text("configuration.noIP") : profile.ipAddress)
                         .font(.caption)
                         .foregroundStyle(profile.id == selectedProfileID ? .white.opacity(0.75) : .secondary)
                         .lineLimit(1)
@@ -263,12 +277,12 @@ struct ContentView: View {
             if let selectedProfile {
                 HStack(alignment: .top) {
                     VStack(alignment: .leading, spacing: 6) {
-                        Text(selectedProfile.name.isEmpty ? "Untitled" : selectedProfile.name)
+                        Text(selectedProfile.name.isEmpty ? text("configuration.untitled") : selectedProfile.name)
                             .font(.largeTitle)
                             .fontWeight(.semibold)
                             .lineLimit(1)
 
-                        Text("Static IP configuration")
+                        Text(text("configuration.static"))
                             .font(.callout)
                             .foregroundStyle(.secondary)
                     }
@@ -279,7 +293,7 @@ struct ContentView: View {
                         Button {
                             applySelectedProfile()
                         } label: {
-                            Label("Apply", systemImage: "checkmark.circle")
+                            Label(text("action.apply"), systemImage: "checkmark.circle")
                         }
                         .buttonStyle(.glassProminent)
                         .keyboardShortcut(.return)
@@ -288,7 +302,7 @@ struct ContentView: View {
                         Button {
                             editProfile(selectedProfile)
                         } label: {
-                            Label("Edit", systemImage: "pencil")
+                            Label(text("action.edit"), systemImage: "pencil")
                         }
                         .buttonStyle(.glass)
                         .disabled(isSwitching)
@@ -296,10 +310,10 @@ struct ContentView: View {
                 }
 
                 LazyVGrid(columns: detailColumns, spacing: 12) {
-                    detailTile("IP Address", selectedProfile.ipAddress, "number")
-                    detailTile("Subnet Mask", selectedProfile.subnetMask, "rectangle.3.group")
-                    detailTile("Router", selectedProfile.router, "point.3.connected.trianglepath.dotted")
-                    detailTile("DNS Servers", selectedProfile.dnsServers, "server.rack")
+                    detailTile(text("editor.ip"), selectedProfile.ipAddress, "number")
+                    detailTile(text("editor.subnet"), selectedProfile.subnetMask, "rectangle.3.group")
+                    detailTile(text("editor.router"), selectedProfile.router, "point.3.connected.trianglepath.dotted")
+                    detailTile(text("editor.dns"), selectedProfile.dnsServers, "server.rack")
                 }
 
                 Spacer()
@@ -311,7 +325,7 @@ struct ContentView: View {
                         .font(.system(size: 44))
                         .foregroundStyle(.tertiary)
 
-                    Text("No Configuration Selected")
+                    Text(text("configuration.noneSelected"))
                         .font(.title3)
                         .fontWeight(.semibold)
                         .foregroundStyle(.secondary)
@@ -359,7 +373,7 @@ struct ContentView: View {
             Button {
                 switchToDHCP()
             } label: {
-                Label("DHCP", systemImage: "arrow.triangle.2.circlepath")
+                Label(text("action.dhcp"), systemImage: "arrow.triangle.2.circlepath")
             }
             .buttonStyle(.glass)
             .disabled(isSwitching)
@@ -386,8 +400,19 @@ struct ContentView: View {
         return profiles.first { $0.id == selectedProfileID }
     }
 
+    func text(_ key: String) -> String {
+        appText(key, languageSetting: appLanguage)
+    }
+
+    var visibleNetworkServices: [NetworkService] {
+        showDisabledNetworkServices
+            ? networkServices
+            : networkServices.filter { !$0.isDisabled }
+    }
+
     func addProfile() {
         draftProfile = NetworkProfile.blank(named: nextProfileName())
+        draftProfile.subnetMask = defaultSubnetMask.trimmingCharacters(in: .whitespacesAndNewlines)
         editingProfileID = nil
         isEditorPresented = true
     }
@@ -423,7 +448,9 @@ struct ContentView: View {
     func duplicateProfile(_ profile: NetworkProfile) {
         var copy = profile
         copy.id = UUID()
-        copy.name = profile.name.isEmpty ? "Untitled Copy" : "\(profile.name) Copy"
+        copy.name = profile.name.isEmpty
+            ? text("configuration.copyUntitled")
+            : appText("configuration.copyName", languageSetting: appLanguage, profile.name)
         profiles.append(copy)
         selectedProfileID = copy.id
         saveProfiles()
@@ -443,12 +470,12 @@ struct ContentView: View {
         let service = serviceName.trimmingCharacters(in: .whitespacesAndNewlines)
 
         guard !service.isEmpty else {
-            statusMessage = "Network service name is required."
+            statusMessage = text("status.networkRequired")
             return
         }
 
         isSwitching = true
-        statusMessage = "Switching \(service) to DHCP..."
+        statusMessage = appText("status.dhcpSwitching", languageSetting: appLanguage, service)
 
         let quotedService = shellQuoted(service)
         let command = """
@@ -458,8 +485,8 @@ struct ContentView: View {
         runAuthorized(command: command) { result in
             isSwitching = false
             statusMessage = result.success
-                ? "\(service) is now using DHCP."
-                : "Failed: \(result.message)"
+                ? appText("status.dhcpComplete", languageSetting: appLanguage, service)
+                : appText("status.applyFailed", languageSetting: appLanguage, result.message)
         }
     }
 
@@ -467,7 +494,7 @@ struct ContentView: View {
         let service = serviceName.trimmingCharacters(in: .whitespacesAndNewlines)
 
         guard let profile = selectedProfile else {
-            statusMessage = "Select a configuration first."
+            statusMessage = text("status.profileRequired")
             return
         }
 
@@ -482,17 +509,18 @@ struct ContentView: View {
             .map(String.init)
 
         guard !service.isEmpty else {
-            statusMessage = "Network service name is required."
+            statusMessage = text("status.networkRequired")
             return
         }
 
         guard !ipAddress.isEmpty, !subnetMask.isEmpty, !router.isEmpty else {
-            statusMessage = "IP address, subnet mask, and router are required."
+            statusMessage = text("status.staticFieldsRequired")
             return
         }
 
         isSwitching = true
-        statusMessage = "Applying \(name.isEmpty ? "selected configuration" : name)..."
+        let displayName = name.isEmpty ? text("status.defaultConfiguration") : name
+        statusMessage = appText("status.applying", languageSetting: appLanguage, displayName)
 
         let quotedService = shellQuoted(service)
         let dnsArguments = dnsServers.isEmpty
@@ -505,8 +533,8 @@ struct ContentView: View {
         runAuthorized(command: command) { result in
             isSwitching = false
             statusMessage = result.success
-                ? "Applied \(name.isEmpty ? "selected configuration" : name)."
-                : "Failed: \(result.message)"
+                ? appText("status.applied", languageSetting: appLanguage, displayName)
+                : appText("status.applyFailed", languageSetting: appLanguage, result.message)
         }
     }
 
@@ -556,18 +584,18 @@ struct ContentView: View {
                     networkServices = services
                     isLoadingServices = false
 
-                    if !services.contains(where: { $0.name == serviceName }) {
-                        serviceName = services.first?.name ?? serviceName
+                    if !visibleNetworkServices.contains(where: { $0.name == serviceName }) {
+                        serviceName = visibleNetworkServices.first?.name ?? serviceName
                     }
 
                     if process.terminationStatus != 0 {
-                        statusMessage = error.isEmpty ? "Failed to load network services." : error
+                        statusMessage = error.isEmpty ? text("status.loadServicesFailed") : error
                     }
                 }
             } catch {
                 DispatchQueue.main.async {
                     isLoadingServices = false
-                    statusMessage = "Failed to load network services: \(error.localizedDescription)"
+                    statusMessage = appText("status.loadServicesFailedDetail", languageSetting: appLanguage, error.localizedDescription)
                 }
             }
         }
@@ -619,7 +647,9 @@ struct ContentView: View {
                 DispatchQueue.main.async {
                     completion((
                         success: process.terminationStatus == 0,
-                        message: message.isEmpty ? "Command exited with code \(process.terminationStatus)." : message
+                        message: message.isEmpty
+                            ? appText("status.commandExited", languageSetting: appLanguage, process.terminationStatus)
+                            : message
                     ))
                 }
             } catch {
@@ -640,13 +670,14 @@ struct ContentView: View {
     }
 
     func nextProfileName() -> String {
-        "Configuration \(profiles.count + 1)"
+        appText("configuration.nextName", languageSetting: appLanguage, profiles.count + 1)
     }
 }
 
 struct NetworkProfileEditor: View {
     let title: String
     @Binding var profile: NetworkProfile
+    let languageSetting: String
     let onCancel: () -> Void
     let onSave: () -> Void
 
@@ -664,11 +695,11 @@ struct NetworkProfileEditor: View {
             Divider()
 
             Form {
-                TextField("Name", text: $profile.name)
-                TextField("IP Address", text: $profile.ipAddress)
-                TextField("Subnet Mask", text: $profile.subnetMask)
-                TextField("Router", text: $profile.router)
-                TextField("DNS Servers", text: $profile.dnsServers)
+                TextField(text("editor.name"), text: $profile.name)
+                TextField(text("editor.ip"), text: $profile.ipAddress)
+                TextField(text("editor.subnet"), text: $profile.subnetMask)
+                TextField(text("editor.router"), text: $profile.router)
+                TextField(text("editor.dns"), text: $profile.dnsServers)
             }
             .formStyle(.grouped)
             .padding(.horizontal, 12)
@@ -679,12 +710,12 @@ struct NetworkProfileEditor: View {
             HStack {
                 Spacer()
 
-                Button("Cancel") {
+                Button(text("action.cancel")) {
                     onCancel()
                 }
                 .keyboardShortcut(.cancelAction)
 
-                Button("Save") {
+                Button(text("action.save")) {
                     onSave()
                 }
                 .keyboardShortcut(.defaultAction)
@@ -692,6 +723,10 @@ struct NetworkProfileEditor: View {
             .padding(16)
         }
         .frame(width: 460)
+    }
+
+    func text(_ key: String) -> String {
+        appText(key, languageSetting: languageSetting)
     }
 }
 
