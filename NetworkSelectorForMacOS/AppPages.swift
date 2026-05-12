@@ -120,7 +120,7 @@ struct SettingsView: View {
     @AppStorage("appLanguage") private var appLanguage = AppLanguage.system.rawValue
     @AppStorage("showDisabledNetworkServices") private var showDisabledNetworkServices = true
     @AppStorage("refreshNetworkServicesOnLaunch") private var refreshNetworkServicesOnLaunch = true
-    @AppStorage("defaultSubnetMask") private var defaultSubnetMask = "255.255.255.0"
+    @AppStorage("defaultSubnetMask") private var defaultSubnetMask = "255.255.0.0"
 
     var body: some View {
         Form {

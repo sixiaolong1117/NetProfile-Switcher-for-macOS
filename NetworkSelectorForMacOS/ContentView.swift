@@ -19,7 +19,7 @@ struct NetworkProfile: Identifiable, Codable, Equatable {
         NetworkProfile(
             name: name,
             ipAddress: "",
-            subnetMask: "255.255.255.0",
+            subnetMask: "255.255.0.0",
             router: "",
             dnsServers: ""
         )
@@ -44,7 +44,7 @@ struct ContentView: View {
     @AppStorage("networkProfiles") private var storedProfiles = "[]"
     @AppStorage("showDisabledNetworkServices") private var showDisabledNetworkServices = true
     @AppStorage("refreshNetworkServicesOnLaunch") private var refreshNetworkServicesOnLaunch = true
-    @AppStorage("defaultSubnetMask") private var defaultSubnetMask = "255.255.255.0"
+    @AppStorage("defaultSubnetMask") private var defaultSubnetMask = "255.255.0.0"
     @AppStorage("appLanguage") private var appLanguage = AppLanguage.system.rawValue
 
     @State private var networkServices: [NetworkService] = []
