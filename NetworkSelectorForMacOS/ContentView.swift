@@ -54,25 +54,28 @@ struct ContentView: View {
     @State private var isSwitching = false
 
     var body: some View {
-        VStack(spacing: 0) {
-            header
+        ZStack {
+            Rectangle()
+                .fill(.background)
+                .backgroundExtensionEffect()
 
-            Divider()
+            VStack(spacing: 12) {
+                header
 
-            HStack(spacing: 0) {
-                profileList
+                HStack(spacing: 12) {
+                    profileList
+                        .frame(minWidth: 200, idealWidth: 230, maxWidth: 280)
 
-                Divider()
+                    profileDetail
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-                profileDetail
+                footer
             }
-            .frame(minHeight: 320)
-
-            Divider()
-
-            footer
+            .padding(12)
         }
-        .frame(width: 760, height: 470)
+        .frame(minWidth: 560, minHeight: 420)
         .onAppear {
             loadProfiles()
             loadNetworkServices()
@@ -94,14 +97,24 @@ struct ContentView: View {
     var header: some View {
         HStack {
             Image(systemName: "network")
-                .font(.title2)
+                .font(.title3)
                 .foregroundStyle(.tint)
 
-            Text("Network Switcher")
-                .font(.title2)
-                .fontWeight(.semibold)
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Network Switcher")
+                    .font(.title2)
+                    .fontWeight(.semibold)
 
-            Spacer()
+                Text("Static profiles and DHCP for local network services")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            Spacer(minLength: 12)
+
+            Text("Network")
+                .font(.caption)
+                .foregroundStyle(.secondary)
 
             Picker("Network", selection: $serviceName) {
                 if networkServices.isEmpty {
@@ -115,7 +128,7 @@ struct ContentView: View {
                 }
             }
             .labelsHidden()
-            .frame(width: 210)
+            .frame(minWidth: 150, idealWidth: 180)
             .disabled(isLoadingServices || networkServices.isEmpty)
 
             Button {
@@ -123,135 +136,222 @@ struct ContentView: View {
             } label: {
                 Image(systemName: "arrow.clockwise")
             }
-            .buttonStyle(.borderless)
+            .buttonStyle(.glass)
             .disabled(isLoadingServices)
         }
-        .padding(18)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
+        .glassPanel(cornerRadius: 20)
     }
 
     var profileList: some View {
-        ZStack {
-            List(profiles, selection: $selectedProfileID) { profile in
-                HStack(spacing: 10) {
-                    Image(systemName: "doc.text")
-                        .foregroundStyle(.secondary)
-                        .frame(width: 18)
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Text("Configurations")
+                    .font(.headline)
+                    .fontWeight(.semibold)
 
-                    VStack(alignment: .leading, spacing: 3) {
-                        Text(profile.name.isEmpty ? "Untitled" : profile.name)
-                            .lineLimit(1)
+                Spacer()
 
-                        Text(profile.ipAddress.isEmpty ? "No IP address" : profile.ipAddress)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                            .lineLimit(1)
-                    }
-
-                    Spacer()
-                }
-                .tag(profile.id)
-                .contextMenu {
-                    Button("Edit Configuration") {
-                        editProfile(profile)
-                    }
-
-                    Button("Duplicate Configuration") {
-                        duplicateProfile(profile)
-                    }
-
-                    Divider()
-
-                    Button("Delete Configuration", role: .destructive) {
-                        deleteProfile(profile)
-                    }
-                }
-            }
-            .listStyle(.sidebar)
-            .contextMenu {
-                Button("Add Configuration") {
+                Button {
                     addProfile()
+                } label: {
+                    Image(systemName: "plus")
                 }
+                .buttonStyle(.glass)
             }
+            .padding(.horizontal, 12)
+            .padding(.top, 12)
 
             if profiles.isEmpty {
-                VStack(spacing: 8) {
-                    Image(systemName: "tray")
-                        .font(.title2)
-                        .foregroundStyle(.tertiary)
+                emptyList
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .contextMenu {
+                        Button("Add Configuration") {
+                            addProfile()
+                        }
+                    }
+            } else {
+                ScrollView {
+                    LazyVStack(spacing: 6) {
+                        ForEach(profiles) { profile in
+                            profileRow(profile)
+                                .contextMenu {
+                                    Button("Edit Configuration") {
+                                        editProfile(profile)
+                                    }
 
-                    Text("No Configurations")
-                        .foregroundStyle(.secondary)
+                                    Button("Duplicate Configuration") {
+                                        duplicateProfile(profile)
+                                    }
+
+                                    Divider()
+
+                                    Button("Delete Configuration", role: .destructive) {
+                                        deleteProfile(profile)
+                                    }
+                                }
+                        }
+                    }
+                    .padding(.horizontal, 8)
+                    .padding(.bottom, 10)
+                    .frame(maxWidth: .infinity, alignment: .top)
                 }
-                .allowsHitTesting(false)
+                .contextMenu {
+                    Button("Add Configuration") {
+                        addProfile()
+                    }
+                }
             }
         }
-        .frame(width: 260)
+        .glassPanel(cornerRadius: 20)
+    }
+
+    var emptyList: some View {
+        VStack(spacing: 10) {
+            Image(systemName: "tray")
+                .font(.largeTitle)
+                .foregroundStyle(.tertiary)
+
+            Text("No Configurations")
+                .font(.headline)
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    func profileRow(_ profile: NetworkProfile) -> some View {
+        Button {
+            selectedProfileID = profile.id
+        } label: {
+            HStack(spacing: 10) {
+                Image(systemName: "doc.text")
+                    .foregroundStyle(profile.id == selectedProfileID ? .white : .secondary)
+                    .frame(width: 20)
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(profile.name.isEmpty ? "Untitled" : profile.name)
+                        .fontWeight(.medium)
+                        .lineLimit(1)
+
+                    Text(profile.ipAddress.isEmpty ? "No IP address" : profile.ipAddress)
+                        .font(.caption)
+                        .foregroundStyle(profile.id == selectedProfileID ? .white.opacity(0.75) : .secondary)
+                        .lineLimit(1)
+                }
+
+                Spacer()
+            }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 8)
+            .frame(maxWidth: .infinity)
+            .contentShape(RoundedRectangle(cornerRadius: 14))
+            .background {
+                if profile.id == selectedProfileID {
+                    RoundedRectangle(cornerRadius: 14)
+                        .fill(.tint)
+                } else {
+                    RoundedRectangle(cornerRadius: 14)
+                        .fill(.clear)
+                }
+            }
+        }
+        .buttonStyle(.plain)
     }
 
     var profileDetail: some View {
-        VStack(alignment: .leading, spacing: 18) {
+        VStack(alignment: .leading, spacing: 16) {
             if let selectedProfile {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text(selectedProfile.name.isEmpty ? "Untitled" : selectedProfile.name)
-                        .font(.title3)
-                        .fontWeight(.semibold)
+                HStack(alignment: .top) {
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(selectedProfile.name.isEmpty ? "Untitled" : selectedProfile.name)
+                            .font(.largeTitle)
+                            .fontWeight(.semibold)
+                            .lineLimit(1)
 
-                    Text("Static IP configuration")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-
-                VStack(spacing: 0) {
-                    detailRow("IP Address", selectedProfile.ipAddress)
-                    detailRow("Subnet Mask", selectedProfile.subnetMask)
-                    detailRow("Router", selectedProfile.router)
-                    detailRow("DNS Servers", selectedProfile.dnsServers)
-                }
-                .background(.background, in: RoundedRectangle(cornerRadius: 8))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 8)
-                        .stroke(.quaternary)
-                )
-
-                HStack {
-                    Button {
-                        applySelectedProfile()
-                    } label: {
-                        Label("Apply", systemImage: "checkmark.circle")
+                        Text("Static IP configuration")
+                            .font(.callout)
+                            .foregroundStyle(.secondary)
                     }
-                    .keyboardShortcut(.return)
-                    .disabled(isSwitching)
-
-                    Button {
-                        editProfile(selectedProfile)
-                    } label: {
-                        Label("Edit", systemImage: "pencil")
-                    }
-                    .disabled(isSwitching)
 
                     Spacer()
+
+                    HStack {
+                        Button {
+                            applySelectedProfile()
+                        } label: {
+                            Label("Apply", systemImage: "checkmark.circle")
+                        }
+                        .buttonStyle(.glassProminent)
+                        .keyboardShortcut(.return)
+                        .disabled(isSwitching)
+
+                        Button {
+                            editProfile(selectedProfile)
+                        } label: {
+                            Label("Edit", systemImage: "pencil")
+                        }
+                        .buttonStyle(.glass)
+                        .disabled(isSwitching)
+                    }
                 }
+
+                LazyVGrid(columns: detailColumns, spacing: 12) {
+                    detailTile("IP Address", selectedProfile.ipAddress, "number")
+                    detailTile("Subnet Mask", selectedProfile.subnetMask, "rectangle.3.group")
+                    detailTile("Router", selectedProfile.router, "point.3.connected.trianglepath.dotted")
+                    detailTile("DNS Servers", selectedProfile.dnsServers, "server.rack")
+                }
+
+                Spacer()
             } else {
                 Spacer()
 
-                VStack(spacing: 10) {
+                VStack(spacing: 12) {
                     Image(systemName: "rectangle.dashed")
-                        .font(.largeTitle)
+                        .font(.system(size: 44))
                         .foregroundStyle(.tertiary)
 
                     Text("No Configuration Selected")
-                        .font(.headline)
+                        .font(.title3)
+                        .fontWeight(.semibold)
                         .foregroundStyle(.secondary)
                 }
                 .frame(maxWidth: .infinity)
 
                 Spacer()
             }
-
-            Spacer()
         }
-        .padding(22)
-        .frame(maxWidth: .infinity, alignment: .topLeading)
+        .padding(18)
+        .glassPanel(cornerRadius: 22)
+    }
+
+    var detailColumns: [GridItem] {
+        [
+            GridItem(.adaptive(minimum: 170), spacing: 10, alignment: .top)
+        ]
+    }
+
+    func detailTile(_ title: String, _ value: String, _ symbol: String) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 8) {
+                Image(systemName: symbol)
+                    .foregroundStyle(.secondary)
+
+                Text(title)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            Text(value.isEmpty ? "-" : value)
+                .font(.system(.body, design: .monospaced))
+                .textSelection(.enabled)
+                .lineLimit(3)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .padding(12)
+        .frame(minHeight: 78, alignment: .topLeading)
+        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 14))
+        .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 14))
     }
 
     var footer: some View {
@@ -261,6 +361,7 @@ struct ContentView: View {
             } label: {
                 Label("DHCP", systemImage: "arrow.triangle.2.circlepath")
             }
+            .buttonStyle(.glass)
             .disabled(isSwitching)
 
             if !statusMessage.isEmpty {
@@ -272,8 +373,9 @@ struct ContentView: View {
 
             Spacer()
         }
-        .padding(.horizontal, 18)
-        .padding(.vertical, 12)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
+        .glassPanel(cornerRadius: 18)
     }
 
     var selectedProfile: NetworkProfile? {
@@ -282,20 +384,6 @@ struct ContentView: View {
         }
 
         return profiles.first { $0.id == selectedProfileID }
-    }
-
-    func detailRow(_ title: String, _ value: String) -> some View {
-        HStack(alignment: .firstTextBaseline) {
-            Text(title)
-                .foregroundStyle(.secondary)
-                .frame(width: 110, alignment: .leading)
-
-            Text(value.isEmpty ? "-" : value)
-                .textSelection(.enabled)
-                .frame(maxWidth: .infinity, alignment: .leading)
-        }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 10)
     }
 
     func addProfile() {
@@ -604,6 +692,14 @@ struct NetworkProfileEditor: View {
             .padding(16)
         }
         .frame(width: 460)
+    }
+}
+
+private extension View {
+    func glassPanel(cornerRadius: CGFloat) -> some View {
+        self
+            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: cornerRadius))
+            .glassEffect(.regular, in: RoundedRectangle(cornerRadius: cornerRadius))
     }
 }
 
