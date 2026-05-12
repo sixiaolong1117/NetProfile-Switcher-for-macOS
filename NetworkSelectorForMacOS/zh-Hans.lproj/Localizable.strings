@@ -1,0 +1,13 @@
+"Network Configuration" = "网络配置";
+"Apply Network Configuration" = "应用网络配置";
+"Switches a network service to one of the saved static IP configurations." = "将网络服务切换到一个已保存的静态 IP 配置。";
+"Configuration" = "配置";
+"Network Service" = "网络服务";
+"Switch Network Service to DHCP" = "切换网络服务为 DHCP";
+"Switches a network service to DHCP and clears custom DNS servers." = "将网络服务切换为 DHCP，并清空自定义 DNS 服务器。";
+"Apply network configuration with ${applicationName}" = "使用${applicationName}应用网络配置";
+"Switch network profile with ${applicationName}" = "使用${applicationName}切换网络配置";
+"Apply Configuration" = "应用配置";
+"Switch to DHCP with ${applicationName}" = "使用${applicationName}切换到 DHCP";
+"Reset network service with ${applicationName}" = "使用${applicationName}重置网络服务";
+"Switch to DHCP" = "切换到 DHCP";

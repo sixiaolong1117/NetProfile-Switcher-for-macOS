@@ -1,0 +1,13 @@
+"Network Configuration" = "Network Configuration";
+"Apply Network Configuration" = "Apply Network Configuration";
+"Switches a network service to one of the saved static IP configurations." = "Switches a network service to one of the saved static IP configurations.";
+"Configuration" = "Configuration";
+"Network Service" = "Network Service";
+"Switch Network Service to DHCP" = "Switch Network Service to DHCP";
+"Switches a network service to DHCP and clears custom DNS servers." = "Switches a network service to DHCP and clears custom DNS servers.";
+"Apply network configuration with ${applicationName}" = "Apply network configuration with ${applicationName}";
+"Switch network profile with ${applicationName}" = "Switch network profile with ${applicationName}";
+"Apply Configuration" = "Apply Configuration";
+"Switch to DHCP with ${applicationName}" = "Switch to DHCP with ${applicationName}";
+"Reset network service with ${applicationName}" = "Reset network service with ${applicationName}";
+"Switch to DHCP" = "Switch to DHCP";
