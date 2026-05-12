@@ -20,18 +20,22 @@ jobs:
   test:
     name: Test
     if: startsWith(github.ref, 'refs/heads/')
-    runs-on: macos-latest
+    runs-on: macos-26
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Show Xcode version
-        run: xcodebuild -version
-
-      - name: Build for testing
         run: |
-          xcodebuild build-for-testing \
+          if [ -d /Applications/Xcode_26.5.app ]; then
+            sudo xcode-select -s /Applications/Xcode_26.5.app
+          fi
+          xcodebuild -version
+
+      - name: Build
+        run: |
+          xcodebuild build \
             -project "$PROJECT" \
             -scheme "$SCHEME" \
             -configuration Debug \
@@ -44,14 +48,18 @@ jobs:
   release:
     name: Build Release
     if: startsWith(github.ref, 'refs/tags/')
-    runs-on: macos-latest
+    runs-on: macos-26
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Show Xcode version
-        run: xcodebuild -version
+        run: |
+          if [ -d /Applications/Xcode_26.5.app ]; then
+            sudo xcode-select -s /Applications/Xcode_26.5.app
+          fi
+          xcodebuild -version
 
       - name: Build app
         run: |
