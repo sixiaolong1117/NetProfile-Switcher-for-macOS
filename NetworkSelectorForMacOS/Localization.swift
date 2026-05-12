@@ -45,7 +45,7 @@ func appText(_ key: String, languageSetting: String, _ arguments: CVarArg...) ->
 
 private let englishText: [String: String] = [
     "about.author": "Author",
-    "about.description": "A small macOS utility for switching network services between DHCP and saved static IP configurations.",
+    "about.description": "A macOS network configuration switcher for quickly switching between multiple preset configurations.",
     "about.license": "许可证",
     "about.repository": "仓库",
     "about.title": "About Network Switcher",
@@ -106,7 +106,7 @@ private let englishText: [String: String] = [
 
 private let simplifiedChineseText: [String: String] = [
     "about.author": "作者",
-    "about.description": "一个用于在 DHCP 与已保存静态 IP 配置之间切换的 macOS 小工具。",
+    "about.description": "一个 macOS 网络配置切换器，可以在多个预设配置间快速切换。",
     "about.license": "License",
     "about.repository": "Repo",
     "about.title": "关于 Network Switcher",
