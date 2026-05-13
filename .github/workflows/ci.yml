@@ -68,6 +68,7 @@ jobs:
 
           mkdir -p "$STAGING_DIR"
           ditto "$APP_PATH" "$STAGING_DIR/$APP_NAME.app"
+          ln -sfn /Applications "$STAGING_DIR/Applications"
           hdiutil create \
             -volname "$APP_NAME" \
             -srcfolder "$STAGING_DIR" \
@@ -162,6 +163,7 @@ jobs:
 
           mkdir -p "$STAGING_DIR"
           ditto "$APP_PATH" "$STAGING_DIR/$APP_NAME.app"
+          ln -sfn /Applications "$STAGING_DIR/Applications"
           hdiutil create \
             -volname "$APP_NAME" \
             -srcfolder "$STAGING_DIR" \
