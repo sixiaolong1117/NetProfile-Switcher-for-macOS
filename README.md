@@ -1,4 +1,4 @@
-# Network Switcher
+# NetProfile Switcher
 
 [English](README.en.md)
 

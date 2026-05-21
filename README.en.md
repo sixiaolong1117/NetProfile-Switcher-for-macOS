@@ -1,8 +1,8 @@
-# Network Switcher
+# NetProfile Switcher
 
 [简体中文](README.md)
 
-Network Switcher is a macOS network configuration switcher for quickly switching between multiple preset configurations.
+NetProfile Switcher is a macOS network configuration switcher for quickly switching between multiple preset configurations.
 
 ## Features
 

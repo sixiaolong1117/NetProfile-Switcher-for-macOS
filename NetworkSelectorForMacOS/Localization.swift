@@ -48,7 +48,7 @@ private let englishText: [String: String] = [
     "about.description": "A macOS network configuration switcher for quickly switching between multiple preset configurations.",
     "about.license": "许可证",
     "about.repository": "仓库",
-    "about.title": "About Network Switcher",
+    "about.title": "About NetProfile Switcher",
     "about.version": "Version %@",
     "action.apply": "Apply",
     "action.cancel": "Cancel",
@@ -101,7 +101,7 @@ private let englishText: [String: String] = [
     "status.profileRequired": "Select a configuration first.",
     "status.staticFieldsRequired": "IP address, subnet mask, and router are required.",
     "subtitle": "Static profiles and DHCP for local network services",
-    "title": "Network Switcher"
+    "title": "NetProfile Switcher"
 ]
 
 private let simplifiedChineseText: [String: String] = [
@@ -109,7 +109,7 @@ private let simplifiedChineseText: [String: String] = [
     "about.description": "一个 macOS 网络配置切换器，可以在多个预设配置间快速切换。",
     "about.license": "License",
     "about.repository": "Repo",
-    "about.title": "关于 Network Switcher",
+    "about.title": "关于 NetProfile Switcher",
     "about.version": "版本 %@",
     "action.apply": "应用",
     "action.cancel": "取消",
@@ -162,5 +162,5 @@ private let simplifiedChineseText: [String: String] = [
     "status.profileRequired": "请先选择一个配置。",
     "status.staticFieldsRequired": "IP 地址、子网掩码和网关不能为空。",
     "subtitle": "为本机网络服务切换静态配置和 DHCP",
-    "title": "Network Switcher"
+    "title": "NetProfile Switcher"
 ]

@@ -10,8 +10,8 @@ import SwiftUI
 struct AboutView: View {
     @AppStorage("appLanguage") private var appLanguage = AppLanguage.system.rawValue
     private let authorAvatarURL = URL(string: "https://avatars.githubusercontent.com/u/59590732")
-    private let repositoryURL = URL(string: "https://github.com/sixiaolong1117/NetworkSelectorForMacOS")!
-    private let licenseURL = URL(string: "https://github.com/sixiaolong1117/NetworkSelectorForMacOS/blob/main/LICENSE")!
+    private let repositoryURL = URL(string: "https://github.com/sixiaolong1117/NetProfile-Switcher-for-macOS")!
+    private let licenseURL = URL(string: "https://github.com/sixiaolong1117/NetProfile-Switcher-for-macOS/blob/main/LICENSE")!
 
     var body: some View {
         VStack(spacing: 18) {

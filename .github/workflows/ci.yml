@@ -14,7 +14,7 @@ env:
   PROJECT: NetworkSelectorForMacOS.xcodeproj
   SCHEME: NetworkSelectorForMacOS
   CONFIGURATION: Release
-  APP_NAME: Network Selector
+  APP_NAME: NetProfile Switcher
 
 jobs:
   test:
@@ -93,6 +93,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Show Xcode version
         run: |
@@ -101,16 +103,11 @@ jobs:
           fi
           xcodebuild -version
 
-      - name: Sync version from tag
+      - name: Sync version from tag and commit
         run: |
           TAG_NAME="${GITHUB_REF_NAME}"
           VERSION="${TAG_NAME#v}"
-          CURRENT_VERSION="$(xcodebuild -showBuildSettings \
-            -project "$PROJECT" \
-            -scheme "$SCHEME" \
-            -configuration "$CONFIGURATION" \
-            -destination "platform=macOS" \
-            2>/dev/null | awk -F'= ' '/ MARKETING_VERSION = / { print $2; exit }')"
+          DEFAULT_BRANCH="${{ github.event.repository.default_branch }}"
 
           if [ -z "$VERSION" ]; then
             echo "Could not derive version from tag: $TAG_NAME"
@@ -122,9 +119,49 @@ jobs:
             exit 1
           fi
 
+          git fetch origin "+refs/heads/*:refs/remotes/origin/*" "+refs/tags/*:refs/tags/*"
+          TAG_COMMIT="$(git rev-list -n 1 "$TAG_NAME")"
+
+          TARGET_BRANCH="$(git branch -r --contains "$TAG_COMMIT" \
+            | sed 's/^[ *]*//' \
+            | grep -v '^origin/HEAD$' \
+            | grep -x "origin/$DEFAULT_BRANCH" \
+            | head -n 1)"
+
+          if [ -z "$TARGET_BRANCH" ]; then
+            TARGET_BRANCH="$(git branch -r --contains "$TAG_COMMIT" \
+              | sed 's/^[ *]*//' \
+              | grep -v '^origin/HEAD$' \
+              | head -n 1)"
+          fi
+
+          if [ -z "$TARGET_BRANCH" ]; then
+            echo "Could not find a remote branch containing tag commit $TAG_COMMIT"
+            exit 1
+          fi
+
+          BRANCH_NAME="${TARGET_BRANCH#origin/}"
+          git checkout -B "$BRANCH_NAME" "$TAG_COMMIT"
+
+          CURRENT_VERSION="$(xcodebuild -showBuildSettings \
+            -project "$PROJECT" \
+            -scheme "$SCHEME" \
+            -configuration "$CONFIGURATION" \
+            -destination "platform=macOS" \
+            2>/dev/null | awk -F'= ' '/ MARKETING_VERSION = / { print $2; exit }')"
+
           if [ "$CURRENT_VERSION" != "$VERSION" ]; then
             echo "Updating MARKETING_VERSION from ${CURRENT_VERSION:-unknown} to $VERSION"
             VERSION="$VERSION" perl -0pi -e 's/MARKETING_VERSION = [^;]+;/MARKETING_VERSION = $ENV{VERSION};/g' "$PROJECT/project.pbxproj"
+
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add "$PROJECT/project.pbxproj"
+            git commit -m "chore: release $TAG_NAME [skip ci]"
+            git push origin "HEAD:$BRANCH_NAME"
+
+            git tag -f "$TAG_NAME" HEAD
+            git push origin "refs/tags/$TAG_NAME" --force
           else
             echo "MARKETING_VERSION already matches tag: $VERSION"
           fi
