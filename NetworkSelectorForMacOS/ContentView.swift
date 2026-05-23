@@ -56,6 +56,8 @@ struct ContentView: View {
     @State private var isLoadingServices = false
     @State private var statusMessage = ""
     @State private var isSwitching = false
+    @State private var currentNetworkInfo = NetworkInfoResult(ipAddress: "", subnetMask: "", router: "", dnsServers: [], rawOutput: "")
+    @State private var isLoadingInfo = false
 
     var body: some View {
         ZStack {
@@ -85,6 +87,10 @@ struct ContentView: View {
             if refreshNetworkServicesOnLaunch {
                 loadNetworkServices()
             }
+            refreshCurrentNetworkInfo()
+        }
+        .onChange(of: serviceName) { _, _ in
+            refreshCurrentNetworkInfo()
         }
         .onChange(of: showDisabledNetworkServices) {
             if !visibleNetworkServices.contains(where: { $0.name == serviceName }) {
@@ -369,27 +375,91 @@ struct ContentView: View {
     }
 
     var footer: some View {
-        HStack(spacing: 12) {
-            Button {
-                switchToDHCP()
-            } label: {
-                Label(text("action.dhcp"), systemImage: "arrow.triangle.2.circlepath")
-            }
-            .buttonStyle(.glass)
-            .disabled(isSwitching)
+        VStack(spacing: 8) {
+            HStack(spacing: 12) {
+                Button {
+                    switchToDHCP()
+                } label: {
+                    Label(text("action.dhcp"), systemImage: "arrow.triangle.2.circlepath")
+                }
+                .buttonStyle(.glass)
+                .disabled(isSwitching)
 
-            if !statusMessage.isEmpty {
-                Text(statusMessage)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(2)
+                if !statusMessage.isEmpty {
+                    Text(statusMessage)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(2)
+                }
+
+                Spacer()
             }
 
-            Spacer()
+            // 当前网络信息面板
+            currentNetworkInfoView
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 10)
         .glassPanel(cornerRadius: 18)
+    }
+
+    var currentNetworkInfoView: some View {
+        HStack(spacing: 0) {
+            Label(text("status.currentInfo"), systemImage: "antenna.radiowaves.left.and.right")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .padding(.trailing, 12)
+
+            if isLoadingInfo {
+                ProgressView()
+                    .controlSize(.small)
+                    .scaleEffect(0.7)
+            } else if currentNetworkInfo.isEmpty {
+                Text(text("status.noInfo"))
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
+            } else {
+                HStack(spacing: 16) {
+                    infoBadge(text("status.currentIP"), currentNetworkInfo.ipAddress, "number")
+                    infoBadge(text("status.currentSubnet"), currentNetworkInfo.subnetMask, "rectangle.3.group")
+                    infoBadge(text("status.currentRouter"), currentNetworkInfo.router, "point.3.connected.trianglepath.dotted")
+                    infoBadge(text("status.currentDNS"), currentNetworkInfo.dnsServersString, "server.rack")
+                }
+            }
+
+            Spacer(minLength: 8)
+
+            Button {
+                refreshCurrentNetworkInfo()
+            } label: {
+                Image(systemName: "arrow.clockwise")
+                    .font(.caption)
+            }
+            .buttonStyle(.plain)
+            .foregroundStyle(.secondary)
+            .help(text("status.refreshInfo"))
+            .disabled(isLoadingInfo)
+        }
+        .padding(.vertical, 4)
+        .padding(.horizontal, 8)
+        .background(.quaternary.opacity(0.15), in: RoundedRectangle(cornerRadius: 10))
+    }
+
+    func infoBadge(_ title: String, _ value: String, _ symbol: String) -> some View {
+        HStack(spacing: 4) {
+            Image(systemName: symbol)
+                .font(.caption2)
+                .foregroundStyle(.tertiary)
+
+            Text(value.isEmpty ? "-" : value)
+                .font(.system(.caption, design: .monospaced))
+                .foregroundStyle(.primary)
+                .textSelection(.enabled)
+                .lineLimit(1)
+        }
+        .padding(.horizontal, 6)
+        .padding(.vertical, 3)
+        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 6))
     }
 
     var selectedProfile: NetworkProfile? {
@@ -487,6 +557,9 @@ struct ContentView: View {
             statusMessage = result.success
                 ? appText("status.dhcpComplete", languageSetting: appLanguage, service)
                 : appText("status.applyFailed", languageSetting: appLanguage, result.message)
+            if result.success {
+                refreshCurrentNetworkInfo()
+            }
         }
     }
 
@@ -535,6 +608,9 @@ struct ContentView: View {
             statusMessage = result.success
                 ? appText("status.applied", languageSetting: appLanguage, displayName)
                 : appText("status.applyFailed", languageSetting: appLanguage, result.message)
+            if result.success {
+                refreshCurrentNetworkInfo()
+            }
         }
     }
 
@@ -671,6 +747,25 @@ struct ContentView: View {
 
     func nextProfileName() -> String {
         appText("configuration.nextName", languageSetting: appLanguage, profiles.count + 1)
+    }
+
+    func refreshCurrentNetworkInfo() {
+        let service = serviceName.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !service.isEmpty else {
+            currentNetworkInfo = NetworkInfoResult(ipAddress: "", subnetMask: "", router: "", dnsServers: [], rawOutput: "")
+            return
+        }
+
+        isLoadingInfo = true
+
+        DispatchQueue.global(qos: .userInitiated).async {
+            let info = NetworkAutomation.getCurrentNetworkInfo(serviceName: service)
+
+            DispatchQueue.main.async {
+                currentNetworkInfo = info
+                isLoadingInfo = false
+            }
+        }
     }
 }
 

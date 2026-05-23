@@ -100,6 +100,13 @@ private let englishText: [String: String] = [
     "status.networkRequired": "Network service name is required.",
     "status.profileRequired": "Select a configuration first.",
     "status.staticFieldsRequired": "IP address, subnet mask, and router are required.",
+    "status.currentInfo": "Current Network Info",
+    "status.currentIP": "Current IP",
+    "status.currentSubnet": "Current Subnet Mask",
+    "status.currentRouter": "Current Gateway",
+    "status.currentDNS": "Current DNS",
+    "status.refreshInfo": "Refresh",
+    "status.noInfo": "Unable to retrieve network information",
     "subtitle": "Static profiles and DHCP for local network services",
     "title": "NetProfile Switcher"
 ]
@@ -161,6 +168,13 @@ private let simplifiedChineseText: [String: String] = [
     "status.networkRequired": "需要网络服务名称。",
     "status.profileRequired": "请先选择一个配置。",
     "status.staticFieldsRequired": "IP 地址、子网掩码和网关不能为空。",
+    "status.currentInfo": "当前网络信息",
+    "status.currentIP": "当前 IP",
+    "status.currentSubnet": "当前子网掩码",
+    "status.currentRouter": "当前网关",
+    "status.currentDNS": "当前 DNS",
+    "status.refreshInfo": "刷新",
+    "status.noInfo": "无法获取网络信息",
     "subtitle": "为本机网络服务切换静态配置和 DHCP",
     "title": "NetProfile Switcher"
 ]

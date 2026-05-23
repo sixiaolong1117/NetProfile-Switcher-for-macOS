@@ -71,6 +71,82 @@ enum NetworkAutomation {
         return await runAuthorized(command: command)
     }
 
+    /// 获取当前网络服务的 IP、子网掩码、网关信息
+    static func getCurrentNetworkInfo(serviceName: String) -> NetworkInfoResult {
+        let service = serviceName.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !service.isEmpty else {
+            return NetworkInfoResult(ipAddress: "", subnetMask: "", router: "", dnsServers: [], rawOutput: "")
+        }
+
+        let quotedService = shellQuoted(service)
+
+        // 获取 IP/子网掩码/网关
+        let infoCommand = "/usr/sbin/networksetup -getinfo \(quotedService)"
+        let infoOutput = runCommand(command: infoCommand)
+
+        // 获取 DNS
+        let dnsCommand = "/usr/sbin/networksetup -getdnsservers \(quotedService)"
+        let dnsOutput = runCommand(command: dnsCommand)
+
+        return parseNetworkInfo(infoOutput: infoOutput, dnsOutput: dnsOutput)
+    }
+
+    private static func runCommand(command: String) -> String {
+        let process = Process()
+        let outputPipe = Pipe()
+        let errorPipe = Pipe()
+
+        process.executableURL = URL(fileURLWithPath: "/bin/zsh")
+        process.arguments = ["-c", command]
+        process.standardOutput = outputPipe
+        process.standardError = errorPipe
+
+        do {
+            try process.run()
+            process.waitUntilExit()
+            return readText(from: outputPipe)
+        } catch {
+            return ""
+        }
+    }
+
+    private static func parseNetworkInfo(infoOutput: String, dnsOutput: String) -> NetworkInfoResult {
+        var ipAddress = ""
+        var subnetMask = ""
+        var router = ""
+
+        // 解析 getinfo 输出
+        let lines = infoOutput.components(separatedBy: .newlines)
+        for line in lines {
+            let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
+            if trimmed.hasPrefix("IP address:") {
+                ipAddress = String(trimmed.dropFirst("IP address:".count)).trimmingCharacters(in: .whitespacesAndNewlines)
+            } else if trimmed.hasPrefix("Subnet mask:") {
+                subnetMask = String(trimmed.dropFirst("Subnet mask:".count)).trimmingCharacters(in: .whitespacesAndNewlines)
+            } else if trimmed.hasPrefix("Router:") {
+                router = String(trimmed.dropFirst("Router:".count)).trimmingCharacters(in: .whitespacesAndNewlines)
+            }
+        }
+
+        // 解析 DNS 输出
+        var dnsServers: [String] = []
+        let dnsLines = dnsOutput.components(separatedBy: .newlines)
+        for line in dnsLines {
+            let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !trimmed.isEmpty && !trimmed.hasPrefix("There aren't any DNS Servers set on") {
+                dnsServers.append(trimmed)
+            }
+        }
+
+        return NetworkInfoResult(
+            ipAddress: ipAddress,
+            subnetMask: subnetMask,
+            router: router,
+            dnsServers: dnsServers,
+            rawOutput: infoOutput
+        )
+    }
+
     static func runAuthorized(command: String) async -> NetworkAutomationResult {
         await withCheckedContinuation { continuation in
             DispatchQueue.global(qos: .userInitiated).async {
@@ -124,6 +200,22 @@ enum NetworkAutomation {
 
     static func text(_ key: String) -> String {
         appText(key, languageSetting: AppLanguage.system.rawValue)
+    }
+}
+
+struct NetworkInfoResult {
+    let ipAddress: String
+    let subnetMask: String
+    let router: String
+    let dnsServers: [String]
+    let rawOutput: String
+
+    var dnsServersString: String {
+        dnsServers.joined(separator: ", ")
+    }
+
+    var isEmpty: Bool {
+        ipAddress.isEmpty && subnetMask.isEmpty && router.isEmpty && dnsServers.isEmpty
     }
 }
 
