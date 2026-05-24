@@ -1,90 +1,105 @@
-# NetProfile Switcher
+# NetProfile Switcher for macOS
 
-[English](README.en.md)
+<div align="center">
 
-一个 macOS 网络配置切换器，可以在多个预设配置间快速切换。
+<img src="NetworkSelectorForMacOS\Assets.xcassets\AppIcon.appiconset\NetworkSelector_128.png" alt="NetProfile Switcher" width="128">
 
-## 功能
+**基于 SwiftUI 的 macOS 网络配置预设切换工具<br/>在多个 IPv4 网络配置、DNS 与 DHCP 之间快速切换**
 
-- 保存多个静态 IP 预设配置。
-- 在预设配置和 DHCP 之间快速切换。
-- 支持选择不同网络服务，例如 `Wi-Fi`、`Ethernet`。
-- 支持配置 IP 地址、子网掩码、网关和 DNS 服务器。
-- 支持 macOS 快捷指令，可在自动化流程中切换网络配置。
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Swift](https://img.shields.io/badge/Swift-5.9-F05138)](https://swift.org)
+[![SwiftUI](https://img.shields.io/badge/SwiftUI-macOS-0078D4)](https://developer.apple.com/swiftui/)
+[![Platform](https://img.shields.io/badge/Platform-macOS%2014%2B-lightgrey)]()
 
-## 使用场景
+[English](README_EN.md) | **简体中文**
 
-- 在公司、家里、实验室等不同网络环境之间切换。
-- 在 DHCP 和固定 IP 之间来回切换。
-- 为路由器、交换机、嵌入式设备调试保存常用静态 IP 配置。
-- 通过快捷指令按条件自动切换配置。
+</div>
 
-## 安装
+---
 
-从 GitHub Releases 下载最新的 `.dmg` 安装包，打开后将应用拖入 `Applications`。
+## 📖 简介
 
-首次运行时，macOS 可能会提示确认打开来自网络下载的应用。
+NetProfile Switcher for macOS 是一款面向 macOS 桌面的网络配置预设工具。它可以保存不同的网络配置（IPv4 地址、子网掩码、网关与 DNS），并在需要时一键切换到指定配置。
 
-## 使用方法
+适合经常在直连网络、旁路网关、代理网关、实验室网络、公司与家庭网络之间切换的场景。你不需要反复进入 macOS 系统设置手动修改网络参数，只要维护好预设，点击即可应用。
 
-1. 打开应用。
-2. 在右上角选择网络服务，例如 `Wi-Fi`。
-3. 点击配置列表中的 `+` 添加配置。
-4. 填写名称、IP 地址、子网掩码、网关和 DNS。
-5. 选择一个配置后点击 `Apply` 应用。
-6. 点击底部 `DHCP` 可将当前网络服务切回 DHCP。
+## 🖼️ 界面预览
 
-切换网络配置需要调用 macOS 的 `networksetup`，执行时可能会弹出管理员权限确认。
+![NetProfile Switcher 界面预览](README/1.png)
 
-## 快捷指令
+## ✨ 功能特性
 
-应用暴露了两个快捷指令动作：
+- **多配置管理**：保存配置名称、IPv4 地址、子网掩码、网关与 DNS 服务器。
+- **一键应用预设**：选中配置后点击 Apply 即可切换，支持键盘快捷键（Enter）。
+- **管理员授权执行**：切换网络参数时调用 `networksetup` 命令，通过 `osascript` 触发管理员权限确认。
+- **DHCP 快捷恢复**：可一键切回 DHCP 地址并清空自定义 DNS。
+- **macOS 快捷指令集成**：暴露 `Apply Network Configuration` 与 `Switch Network Service to DHCP` 两个 App Intents，可在快捷指令中结合条件、时间、位置等自动化规则使用。
 
-- `Apply Network Configuration`：将指定网络服务切换到已保存的静态 IP 配置。
-- `Switch Network Service to DHCP`：将指定网络服务切换回 DHCP，并清空自定义 DNS。
+## 🚀 快速开始
 
-可以在 macOS「快捷指令」中搜索应用名称或动作名称，然后结合条件、菜单、时间、位置等自动化规则使用。
+### 系统要求
 
-## 开发
+- macOS 14 (Sonoma) 或更高版本
+- 可用的 Wi-Fi、Ethernet 或其他 macOS 网络服务
 
-要求：
+### 安装
 
-- macOS 26 或更新版本
-- Xcode 26 或更新版本
+#### 🛠️ 从 GitHub Releases 获取
 
-构建：
+从 [GitHub Releases](https://github.com/sixiaolong1117/NetProfile-Switcher-for-macOS/releases) 下载最新的 `.dmg` 安装包。
 
-```bash
-xcodebuild build \
-  -project NetworkSelectorForMacOS.xcodeproj \
-  -scheme NetworkSelectorForMacOS \
-  -configuration Debug \
-  -destination "platform=macOS"
-```
+首次运行时，macOS 可能会提示确认打开来自网络下载的应用，请在「系统设置 → 隐私与安全性」中允许运行。
 
-## 发布
+#### 🛠️ 从源码构建
 
-项目包含 GitHub Actions：
-
-- 分支 push：执行 Debug 构建校验。
-- tag push：同步 `MARKETING_VERSION` 到 tag 版本，执行构建校验，构建 Release 产物，生成 `.dmg`，并上传到对应 GitHub Release。
-
-发布示例：
+1. 克隆仓库：
 
 ```bash
-git tag v1.0.0
-git push origin v1.0.0
+git clone https://github.com/sixiaolong1117/NetProfile-Switcher-for-macOS.git
 ```
 
-tag 格式支持：
+2. 使用 Xcode 打开 `NetworkSelectorForMacOS.xcodeproj`。
+3. 选择 `My Mac` 作为运行目标。
+4. 点击 Run 或按 `⌘R` 构建并运行。
 
-- `1.2.3`
-- `v1.2.3`
+## 📖 使用指南
 
-## 权限说明
+### ➕ 添加静态网络配置
 
-应用通过 `/usr/sbin/networksetup` 修改 macOS 网络配置。由于这是系统网络设置，切换配置时可能需要管理员权限。
+1. 在配置列表点击 **＋** 按钮。
+2. 填写配置名称，例如"旁路网关"或"公司网络"。
+3. 填写 IPv4 地址、子网掩码、网关与 DNS 服务器。
+4. 点击 **Save** 保存配置。
 
-## License
+### 🔁 切换配置
 
-本项目基于 [LICENSE](LICENSE) 文件中的条款开源。
+| 操作 | 说明 |
+|------|------|
+| 选中配置 → Apply | 立即将该静态网络配置应用到当前网络服务 |
+| DHCP 按钮 | 将当前网络服务切回 DHCP 地址并清空 DNS |
+| 右侧详情面板 | 查看当前选中配置的完整参数 |
+
+> 应用配置后，macOS 系统设置中的网络面板可能需要重新打开才能显示最新结果。
+
+### ⚙️ 快捷指令自动化
+
+应用提供了两个快捷指令动作，可在 macOS「快捷指令」App 中搜索使用：
+
+| 动作 | 说明 |
+|------|------|
+| Apply Network Configuration | 将指定网络服务切换到已保存的静态 IP 配置 |
+| Switch Network Service to DHCP | 将指定网络服务切换回 DHCP，并清空自定义 DNS |
+
+你可以结合条件判断、时间触发、菜单选择等自动化规则，实现网络配置的自动切换。
+
+## 🔒 隐私
+
+NetProfile Switcher for macOS 不会收集、使用或分享个人信息。所有配置数据仅保存在本地 UserDefaults 中。
+
+## 🤝 贡献
+
+欢迎提交 Issue 和 Pull Request。
+
+## 📄 许可证
+
+本项目基于 [MIT 许可证](LICENSE) 开源。
