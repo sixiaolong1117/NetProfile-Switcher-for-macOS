@@ -1,6 +1,7 @@
 //
 //  Localization.swift
 //  NetworkSelectorForMacOS
+//  本地化
 //
 //  Created by 司晓龙 on 2026/5/13.
 //

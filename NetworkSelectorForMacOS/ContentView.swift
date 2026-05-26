@@ -1,12 +1,14 @@
 //
 //  ContentView.swift
 //  NetworkSelectorForMacOS
+//  主界面、交互逻辑
 //
 //  Created by 司晓龙 on 2026/5/13.
 //
 
 import SwiftUI
 
+// 网络配置文件数据模型
 struct NetworkProfile: Identifiable, Codable, Equatable {
     var id = UUID()
     var name: String
@@ -15,6 +17,7 @@ struct NetworkProfile: Identifiable, Codable, Equatable {
     var router: String
     var dnsServers: String
 
+    // 创建一个空白配置文件的工厂方法，方便在添加新配置时使用
     static func blank(named name: String) -> NetworkProfile {
         NetworkProfile(
             name: name,
@@ -26,9 +29,10 @@ struct NetworkProfile: Identifiable, Codable, Equatable {
     }
 }
 
+// 当前网络信息数据模型
 struct NetworkService: Identifiable, Equatable {
     let name: String
-    let isDisabled: Bool
+    let isDisabled: Bool    // 是否被禁用（在 networksetup 的输出中以 * 开头表示被禁用）
 
     var id: String {
         name
@@ -40,25 +44,27 @@ struct NetworkService: Identifiable, Equatable {
 }
 
 struct ContentView: View {
-    @AppStorage("networkServiceName") private var serviceName = "Wi-Fi"
-    @AppStorage("networkProfiles") private var storedProfiles = "[]"
-    @AppStorage("showDisabledNetworkServices") private var showDisabledNetworkServices = true
-    @AppStorage("refreshNetworkServicesOnLaunch") private var refreshNetworkServicesOnLaunch = true
-    @AppStorage("defaultSubnetMask") private var defaultSubnetMask = "255.255.0.0"
-    @AppStorage("appLanguage") private var appLanguage = AppLanguage.system.rawValue
+    // 使用 AppStorage 来持久化用户设置和数据，简化状态管理
+    @AppStorage("networkServiceName") private var serviceName = "Wi-Fi"     // 默认选择 Wi-Fi，可以根据需要调整
+    @AppStorage("networkProfiles") private var storedProfiles = "[]"        // 存储配置文件的 JSON 字符串
+    @AppStorage("showDisabledNetworkServices") private var showDisabledNetworkServices = true           // 是否显示被禁用的网络服务
+    @AppStorage("refreshNetworkServicesOnLaunch") private var refreshNetworkServicesOnLaunch = true     // 是否在应用启动时刷新网络服务列表
+    @AppStorage("defaultSubnetMask") private var defaultSubnetMask = "255.255.0.0"      // 添加默认子网掩码设置
+    @AppStorage("appLanguage") private var appLanguage = AppLanguage.system.rawValue    // 应用默认语言设置
 
-    @State private var networkServices: [NetworkService] = []
-    @State private var profiles: [NetworkProfile] = []
-    @State private var selectedProfileID: NetworkProfile.ID?
-    @State private var draftProfile = NetworkProfile.blank(named: "")
-    @State private var editingProfileID: NetworkProfile.ID?
-    @State private var isEditorPresented = false
-    @State private var isLoadingServices = false
-    @State private var statusMessage = ""
-    @State private var isSwitching = false
-    @State private var currentNetworkInfo = NetworkInfoResult(ipAddress: "", subnetMask: "", router: "", dnsServers: [], rawOutput: "")
-    @State private var isLoadingInfo = false
+    @State private var networkServices: [NetworkService] = []           // 当前可用的网络服务列表
+    @State private var profiles: [NetworkProfile] = []                  // 当前保存的网络配置文件列表
+    @State private var selectedProfileID: NetworkProfile.ID?            // 当前选中的配置文件 ID
+    @State private var draftProfile = NetworkProfile.blank(named: "")   // 用于编辑时的临时配置文件数据
+    @State private var editingProfileID: NetworkProfile.ID?             // 当前正在编辑的配置文件 ID，nil 表示正在创建新配置
+    @State private var isEditorPresented = false        // 是否显示配置编辑界面
+    @State private var isLoadingServices = false        // 是否正在加载网络服务列表
+    @State private var statusMessage = ""               // 用于显示操作状态和错误信息
+    @State private var isSwitching = false              // 是否正在切换网络配置，控制界面交互状态
+    @State private var currentNetworkInfo = NetworkInfoResult(ipAddress: "", subnetMask: "", router: "", dnsServers: [], rawOutput: "") // 当前网络信息
+    @State private var isLoadingInfo = false            // 是否正在加载当前网络信息
 
+    // 主界面布局
     var body: some View {
         ZStack {
             Rectangle()
@@ -114,6 +120,7 @@ struct ContentView: View {
         }
     }
 
+    // 头部区域
     var header: some View {
         HStack {
             Image(systemName: "network")
@@ -164,6 +171,7 @@ struct ContentView: View {
         .glassPanel(cornerRadius: 20)
     }
 
+    // 配置文件列表区域
     var profileList: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
@@ -227,6 +235,7 @@ struct ContentView: View {
         .glassPanel(cornerRadius: 20)
     }
 
+    // 空列表占位视图
     var emptyList: some View {
         VStack(spacing: 10) {
             Image(systemName: "tray")
@@ -239,6 +248,7 @@ struct ContentView: View {
         }
     }
 
+    // 配置文件行视图
     func profileRow(_ profile: NetworkProfile) -> some View {
         Button {
             selectedProfileID = profile.id
@@ -278,6 +288,7 @@ struct ContentView: View {
         .buttonStyle(.plain)
     }
 
+    // 配置文件详情区域
     var profileDetail: some View {
         VStack(alignment: .leading, spacing: 16) {
             if let selectedProfile {
@@ -345,12 +356,14 @@ struct ContentView: View {
         .glassPanel(cornerRadius: 22)
     }
 
+    // 配置文件详情的网格布局
     var detailColumns: [GridItem] {
         [
             GridItem(.adaptive(minimum: 170), spacing: 10, alignment: .top)
         ]
     }
 
+    // 配置文件详情的单元格视图
     func detailTile(_ title: String, _ value: String, _ symbol: String) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 8) {
@@ -374,6 +387,7 @@ struct ContentView: View {
         .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 14))
     }
 
+    // 底部区域
     var footer: some View {
         VStack(spacing: 8) {
             HStack(spacing: 12) {
@@ -403,6 +417,7 @@ struct ContentView: View {
         .glassPanel(cornerRadius: 18)
     }
 
+    // 当前网络信息面板
     var currentNetworkInfoView: some View {
         HStack(spacing: 0) {
             Label(text("status.currentInfo"), systemImage: "antenna.radiowaves.left.and.right")
@@ -445,6 +460,7 @@ struct ContentView: View {
         .background(.quaternary.opacity(0.15), in: RoundedRectangle(cornerRadius: 10))
     }
 
+    // 当前网络信息面板中的信息徽章视图
     func infoBadge(_ title: String, _ value: String, _ symbol: String) -> some View {
         HStack(spacing: 4) {
             Image(systemName: symbol)
@@ -462,6 +478,7 @@ struct ContentView: View {
         .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 6))
     }
 
+    // 计算属性，获取当前选中的配置文件对象，方便在界面中显示详细信息和进行编辑操作
     var selectedProfile: NetworkProfile? {
         guard let selectedProfileID else {
             return nil
@@ -470,16 +487,19 @@ struct ContentView: View {
         return profiles.first { $0.id == selectedProfileID }
     }
 
+    // 文本本地化函数
     func text(_ key: String) -> String {
         appText(key, languageSetting: appLanguage)
     }
 
+    // 计算属性，根据用户设置决定是否显示被禁用的网络服务，确保用户可以根据需要选择合适的网络接口进行配置
     var visibleNetworkServices: [NetworkService] {
         showDisabledNetworkServices
             ? networkServices
             : networkServices.filter { !$0.isDisabled }
     }
 
+    // 添加新配置文件的函数
     func addProfile() {
         draftProfile = NetworkProfile.blank(named: nextProfileName())
         draftProfile.subnetMask = defaultSubnetMask.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -487,12 +507,14 @@ struct ContentView: View {
         isEditorPresented = true
     }
 
+    // 编辑现有配置文件的函数
     func editProfile(_ profile: NetworkProfile) {
         draftProfile = profile
         editingProfileID = profile.id
         isEditorPresented = true
     }
 
+    // 保存配置文件的函数
     func saveDraftProfile() {
         let normalizedProfile = NetworkProfile(
             id: draftProfile.id,
@@ -515,6 +537,7 @@ struct ContentView: View {
         isEditorPresented = false
     }
 
+    // 复制配置文件的函数
     func duplicateProfile(_ profile: NetworkProfile) {
         var copy = profile
         copy.id = UUID()
@@ -526,6 +549,7 @@ struct ContentView: View {
         saveProfiles()
     }
 
+    // 删除配置文件的函数
     func deleteProfile(_ profile: NetworkProfile) {
         profiles.removeAll { $0.id == profile.id }
 
@@ -536,6 +560,7 @@ struct ContentView: View {
         saveProfiles()
     }
 
+    // 切换到 DHCP 的函数
     func switchToDHCP() {
         let service = serviceName.trimmingCharacters(in: .whitespacesAndNewlines)
 
@@ -563,6 +588,7 @@ struct ContentView: View {
         }
     }
 
+    // 应用选中配置文件的函数
     func applySelectedProfile() {
         let service = serviceName.trimmingCharacters(in: .whitespacesAndNewlines)
 
@@ -614,6 +640,7 @@ struct ContentView: View {
         }
     }
 
+    // 加载配置文件的函数
     func loadProfiles() {
         guard let data = storedProfiles.data(using: .utf8),
               let decodedProfiles = try? JSONDecoder().decode([NetworkProfile].self, from: data) else {
@@ -626,6 +653,7 @@ struct ContentView: View {
         selectedProfileID = profiles.first?.id
     }
 
+    // 保存配置文件的函数
     func saveProfiles() {
         guard let data = try? JSONEncoder().encode(profiles),
               let encodedProfiles = String(data: data, encoding: .utf8) else {
@@ -635,6 +663,7 @@ struct ContentView: View {
         storedProfiles = encodedProfiles
     }
 
+    // 加载网络服务列表的函数
     func loadNetworkServices() {
         isLoadingServices = true
 
@@ -677,6 +706,7 @@ struct ContentView: View {
         }
     }
 
+    // 解析 networksetup -listallnetworkservices 命令输出的函数，提取网络服务名称和禁用状态，构建 NetworkService 对象列表供界面显示和选择
     func parseNetworkServices(_ output: String) -> [NetworkService] {
         output
             .components(separatedBy: .newlines)
@@ -695,6 +725,7 @@ struct ContentView: View {
             .filter { !$0.name.isEmpty }
     }
 
+    // 运行需要管理员权限的命令的函数
     func runAuthorized(command: String, completion: @escaping ((success: Bool, message: String)) -> Void) {
         DispatchQueue.global(qos: .userInitiated).async {
             let script = """
@@ -736,19 +767,23 @@ struct ContentView: View {
         }
     }
 
+    // 从管道读取文本的函数，处理命令输出和错误信息
     func readText(from pipe: Pipe) -> String {
         String(data: pipe.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8)?
             .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
     }
 
+    // 将字符串进行 shell 转义的函数，确保在构建命令时正确处理特殊字符，避免命令注入和语法错误
     func shellQuoted(_ value: String) -> String {
         "'\(value.replacingOccurrences(of: "'", with: "'\\''"))'"
     }
 
+    // 生成下一个默认配置文件名称的函数，确保新添加的配置文件有一个合理的默认名称，提升用户体验
     func nextProfileName() -> String {
         appText("configuration.nextName", languageSetting: appLanguage, profiles.count + 1)
     }
 
+    // 刷新当前网络信息的函数
     func refreshCurrentNetworkInfo() {
         let service = serviceName.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !service.isEmpty else {
@@ -769,6 +804,7 @@ struct ContentView: View {
     }
 }
 
+// 配置文件编辑界面
 struct NetworkProfileEditor: View {
     let title: String
     @Binding var profile: NetworkProfile
@@ -776,6 +812,7 @@ struct NetworkProfileEditor: View {
     let onCancel: () -> Void
     let onSave: () -> Void
 
+    // 编辑界面布局
     var body: some View {
         VStack(spacing: 0) {
             HStack {
@@ -825,6 +862,7 @@ struct NetworkProfileEditor: View {
     }
 }
 
+// 视图扩展，添加玻璃面板效果，提升界面美观度和层次感
 private extension View {
     func glassPanel(cornerRadius: CGFloat) -> some View {
         self

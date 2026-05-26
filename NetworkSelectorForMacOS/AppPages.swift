@@ -1,12 +1,14 @@
 //
 //  AppPages.swift
 //  NetworkSelectorForMacOS
+//  辅助页面，包含关于和设置的内容
 //
 //  Created by 司晓龙 on 2026/5/13.
 //
 
 import SwiftUI
 
+// 关于页面，展示应用信息和作者信息
 struct AboutView: View {
     @AppStorage("appLanguage") private var appLanguage = AppLanguage.system.rawValue
     private let authorAvatarURL = URL(string: "https://avatars.githubusercontent.com/u/59590732")
@@ -116,6 +118,7 @@ struct AboutView: View {
     }
 }
 
+// 设置页面，提供应用设置选项
 struct SettingsView: View {
     @AppStorage("appLanguage") private var appLanguage = AppLanguage.system.rawValue
     @AppStorage("showDisabledNetworkServices") private var showDisabledNetworkServices = true
