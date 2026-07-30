@@ -6,10 +6,9 @@
 
 **基于 SwiftUI 的 macOS 网络配置预设切换工具<br/>在多个 IPv4 网络配置、DNS 与 DHCP 之间快速切换**
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 [![Swift](https://img.shields.io/badge/Swift-5.9-F05138)](https://swift.org)
 [![SwiftUI](https://img.shields.io/badge/SwiftUI-macOS-0078D4)](https://developer.apple.com/swiftui/)
-[![Platform](https://img.shields.io/badge/Platform-macOS%2014%2B-lightgrey)]()
 
 [English](README_EN.md) | **简体中文**
 
