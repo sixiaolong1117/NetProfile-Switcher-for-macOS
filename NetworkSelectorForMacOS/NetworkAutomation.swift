@@ -10,7 +10,6 @@ import AppIntents
 import Foundation
 
 enum NetworkAutomation {
-    static let defaultServiceName = "Wi-Fi"
 
     // 从 UserDefaults 中获取保存的网络配置文件列表
     static func storedProfiles() -> [NetworkProfile] {
@@ -22,11 +21,6 @@ enum NetworkAutomation {
         }
 
         return decodedProfiles
-    }
-
-    // 从 UserDefaults 中获取保存的网络服务名称，默认为 "Wi-Fi"
-    static func storedServiceName() -> String {
-        UserDefaults.standard.string(forKey: "networkServiceName") ?? defaultServiceName
     }
 
     // 将指定的网络配置应用到指定的网络服务上，执行系统命令进行配置
@@ -93,7 +87,7 @@ enum NetworkAutomation {
 
         // 验证输入，确保网络服务名称不为空
         guard !service.isEmpty else {
-            return NetworkInfoResult(ipAddress: "", subnetMask: "", router: "", dnsServers: [], rawOutput: "")
+            return NetworkInfoResult(ipAddress: "", subnetMask: "", router: "", dnsServers: [])
         }
 
         // 构建系统命令，使用 networksetup 工具获取网络服务的配置信息
@@ -169,8 +163,7 @@ enum NetworkAutomation {
             ipAddress: ipAddress,
             subnetMask: subnetMask,
             router: router,
-            dnsServers: dnsServers,
-            rawOutput: infoOutput
+            dnsServers: dnsServers
         )
     }
 
@@ -237,7 +230,6 @@ struct NetworkInfoResult {
     let subnetMask: String
     let router: String
     let dnsServers: [String]
-    let rawOutput: String
 
     var dnsServersString: String {
         dnsServers.joined(separator: ", ")

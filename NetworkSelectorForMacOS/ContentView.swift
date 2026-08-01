@@ -61,7 +61,7 @@ struct ContentView: View {
     @State private var isLoadingServices = false        // 是否正在加载网络服务列表
     @State private var statusMessage = ""               // 用于显示操作状态和错误信息
     @State private var isSwitching = false              // 是否正在切换网络配置，控制界面交互状态
-    @State private var currentNetworkInfo = NetworkInfoResult(ipAddress: "", subnetMask: "", router: "", dnsServers: [], rawOutput: "") // 当前网络信息
+    @State private var currentNetworkInfo = NetworkInfoResult(ipAddress: "", subnetMask: "", router: "", dnsServers: []) // 当前网络信息
     @State private var isLoadingInfo = false            // 是否正在加载当前网络信息
 
     // 主界面布局
@@ -572,12 +572,8 @@ struct ContentView: View {
         isSwitching = true
         statusMessage = appText("status.dhcpSwitching", languageSetting: appLanguage, service)
 
-        let quotedService = shellQuoted(service)
-        let command = """
-        /usr/sbin/networksetup -setdhcp \(quotedService) && /usr/sbin/networksetup -setdnsservers \(quotedService) Empty
-        """
-
-        runAuthorized(command: command) { result in
+        Task { @MainActor in
+            let result = await NetworkAutomation.switchToDHCP(serviceName: service)
             isSwitching = false
             statusMessage = result.success
                 ? appText("status.dhcpComplete", languageSetting: appLanguage, service)
@@ -590,46 +586,19 @@ struct ContentView: View {
 
     // 应用选中配置文件的函数
     func applySelectedProfile() {
-        let service = serviceName.trimmingCharacters(in: .whitespacesAndNewlines)
-
         guard let profile = selectedProfile else {
             statusMessage = text("status.profileRequired")
             return
         }
 
         let name = profile.name.trimmingCharacters(in: .whitespacesAndNewlines)
-        let ipAddress = profile.ipAddress.trimmingCharacters(in: .whitespacesAndNewlines)
-        let subnetMask = profile.subnetMask.trimmingCharacters(in: .whitespacesAndNewlines)
-        let router = profile.router.trimmingCharacters(in: .whitespacesAndNewlines)
-        let dnsServers = profile.dnsServers
-            .split { character in
-                character == "," || character == " " || character == "\n" || character == "\t"
-            }
-            .map(String.init)
-
-        guard !service.isEmpty else {
-            statusMessage = text("status.networkRequired")
-            return
-        }
-
-        guard !ipAddress.isEmpty, !subnetMask.isEmpty, !router.isEmpty else {
-            statusMessage = text("status.staticFieldsRequired")
-            return
-        }
+        let displayName = name.isEmpty ? text("status.defaultConfiguration") : name
 
         isSwitching = true
-        let displayName = name.isEmpty ? text("status.defaultConfiguration") : name
         statusMessage = appText("status.applying", languageSetting: appLanguage, displayName)
 
-        let quotedService = shellQuoted(service)
-        let dnsArguments = dnsServers.isEmpty
-            ? "Empty"
-            : dnsServers.map(shellQuoted).joined(separator: " ")
-        let command = """
-        /usr/sbin/networksetup -setmanual \(quotedService) \(shellQuoted(ipAddress)) \(shellQuoted(subnetMask)) \(shellQuoted(router)) && /usr/sbin/networksetup -setdnsservers \(quotedService) \(dnsArguments)
-        """
-
-        runAuthorized(command: command) { result in
+        Task { @MainActor in
+            let result = await NetworkAutomation.apply(profile: profile, serviceName: serviceName)
             isSwitching = false
             statusMessage = result.success
                 ? appText("status.applied", languageSetting: appLanguage, displayName)
@@ -642,14 +611,7 @@ struct ContentView: View {
 
     // 加载配置文件的函数
     func loadProfiles() {
-        guard let data = storedProfiles.data(using: .utf8),
-              let decodedProfiles = try? JSONDecoder().decode([NetworkProfile].self, from: data) else {
-            profiles = []
-            selectedProfileID = nil
-            return
-        }
-
-        profiles = decodedProfiles
+        profiles = NetworkAutomation.storedProfiles()
         selectedProfileID = profiles.first?.id
     }
 
@@ -681,8 +643,8 @@ struct ContentView: View {
                 try process.run()
                 process.waitUntilExit()
 
-                let output = readText(from: outputPipe)
-                let error = readText(from: errorPipe)
+                let output = NetworkAutomation.readText(from: outputPipe)
+                let error = NetworkAutomation.readText(from: errorPipe)
                 let services = parseNetworkServices(output)
 
                 DispatchQueue.main.async {
@@ -725,59 +687,6 @@ struct ContentView: View {
             .filter { !$0.name.isEmpty }
     }
 
-    // 运行需要管理员权限的命令的函数
-    func runAuthorized(command: String, completion: @escaping ((success: Bool, message: String)) -> Void) {
-        DispatchQueue.global(qos: .userInitiated).async {
-            let script = """
-            on run argv
-                do shell script (item 1 of argv) with administrator privileges
-            end run
-            """
-
-            let process = Process()
-            let outputPipe = Pipe()
-            let errorPipe = Pipe()
-
-            process.executableURL = URL(fileURLWithPath: "/usr/bin/osascript")
-            process.arguments = ["-e", script, command]
-            process.standardOutput = outputPipe
-            process.standardError = errorPipe
-
-            do {
-                try process.run()
-                process.waitUntilExit()
-
-                let output = readText(from: outputPipe)
-                let error = readText(from: errorPipe)
-                let message = error.isEmpty ? output : error
-
-                DispatchQueue.main.async {
-                    completion((
-                        success: process.terminationStatus == 0,
-                        message: message.isEmpty
-                            ? appText("status.commandExited", languageSetting: appLanguage, process.terminationStatus)
-                            : message
-                    ))
-                }
-            } catch {
-                DispatchQueue.main.async {
-                    completion((success: false, message: error.localizedDescription))
-                }
-            }
-        }
-    }
-
-    // 从管道读取文本的函数，处理命令输出和错误信息
-    func readText(from pipe: Pipe) -> String {
-        String(data: pipe.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8)?
-            .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-    }
-
-    // 将字符串进行 shell 转义的函数，确保在构建命令时正确处理特殊字符，避免命令注入和语法错误
-    func shellQuoted(_ value: String) -> String {
-        "'\(value.replacingOccurrences(of: "'", with: "'\\''"))'"
-    }
-
     // 生成下一个默认配置文件名称的函数，确保新添加的配置文件有一个合理的默认名称，提升用户体验
     func nextProfileName() -> String {
         appText("configuration.nextName", languageSetting: appLanguage, profiles.count + 1)
@@ -787,7 +696,7 @@ struct ContentView: View {
     func refreshCurrentNetworkInfo() {
         let service = serviceName.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !service.isEmpty else {
-            currentNetworkInfo = NetworkInfoResult(ipAddress: "", subnetMask: "", router: "", dnsServers: [], rawOutput: "")
+            currentNetworkInfo = NetworkInfoResult(ipAddress: "", subnetMask: "", router: "", dnsServers: [])
             return
         }
 
