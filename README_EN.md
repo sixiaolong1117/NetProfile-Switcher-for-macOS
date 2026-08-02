@@ -7,9 +7,9 @@
 **A SwiftUI-based macOS network configuration preset switcher<br/>Quickly switch between multiple IPv4 network configurations, DNS, and DHCP**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Swift](https://img.shields.io/badge/Swift-5.9-F05138)](https://swift.org)
+[![Swift](https://img.shields.io/badge/Swift-6-F05138)](https://swift.org)
 [![SwiftUI](https://img.shields.io/badge/SwiftUI-macOS-0078D4)](https://developer.apple.com/swiftui/)
-[![Platform](https://img.shields.io/badge/Platform-macOS%2014%2B-lightgrey)]()
+[![Platform](https://img.shields.io/badge/Platform-macOS%2026%2B-lightgrey)]()
 
 **English** | [简体中文](README.md)
 
@@ -39,7 +39,7 @@ It is ideal for scenarios where you frequently switch between direct connections
 
 ### System Requirements
 
-- macOS 14 (Sonoma) or later
+- macOS 26 (Tahoe) or later
 - Available Wi-Fi, Ethernet, or other macOS network services
 
 ### Installation
@@ -58,7 +58,7 @@ On the first launch, macOS may prompt you to confirm opening an app downloaded f
 git clone https://github.com/sixiaolong1117/NetProfile-Switcher-for-macOS.git
 ```
 
-2. Open `NetworkSelectorForMacOS.xcodeproj` with Xcode.
+2. Open `NetworkSelectorForMacOS.xcodeproj` with Xcode 26.5 or later.
 3. Select `My Mac` as the run target.
 4. Click Run or press `⌘R` to build and run.
 

@@ -7,7 +7,7 @@
 **基于 SwiftUI 的 macOS 网络配置预设切换工具<br/>在多个 IPv4 网络配置、DNS 与 DHCP 之间快速切换**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
-[![Swift](https://img.shields.io/badge/Swift-5.9-F05138)](https://swift.org)
+[![Swift](https://img.shields.io/badge/Swift-6-F05138)](https://swift.org)
 [![SwiftUI](https://img.shields.io/badge/SwiftUI-macOS-0078D4)](https://developer.apple.com/swiftui/)
 
 [English](README_EN.md) | **简体中文**
@@ -38,7 +38,7 @@ NetProfile Switcher for macOS 是一款面向 macOS 桌面的网络配置预设�
 
 ### 系统要求
 
-- macOS 14 (Sonoma) 或更高版本
+- macOS 26 (Tahoe) 或更高版本
 - 可用的 Wi-Fi、Ethernet 或其他 macOS 网络服务
 
 ### 安装
@@ -57,7 +57,7 @@ NetProfile Switcher for macOS 是一款面向 macOS 桌面的网络配置预设�
 git clone https://github.com/sixiaolong1117/NetProfile-Switcher-for-macOS.git
 ```
 
-2. 使用 Xcode 打开 `NetworkSelectorForMacOS.xcodeproj`。
+2. 使用 Xcode 26.5 或更高版本打开 `NetworkSelectorForMacOS.xcodeproj`。
 3. 选择 `My Mac` 作为运行目标。
 4. 点击 Run 或按 `⌘R` 构建并运行。
 
