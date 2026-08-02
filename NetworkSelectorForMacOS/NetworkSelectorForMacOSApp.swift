@@ -3,8 +3,6 @@
 //  NetworkSelectorForMacOS
 //  应用入口
 //
-//  Created by 司晓龙 on 2026/5/13.
-//
 
 import SwiftUI
 

@@ -3,8 +3,6 @@
 //  NetworkSelectorForMacOS
 //  辅助页面，包含关于和设置的内容
 //
-//  Created by 司晓龙 on 2026/5/13.
-//
 
 import SwiftUI
 
@@ -125,6 +123,9 @@ struct SettingsView: View {
     @AppStorage("refreshNetworkServicesOnLaunch") private var refreshNetworkServicesOnLaunch = true
     @AppStorage("defaultSubnetMask") private var defaultSubnetMask = "255.255.0.0"
 
+    @State private var sudoersStatus = ""
+    @State private var isSudoersBusy = false
+
     var body: some View {
         Form {
             Section(text("settings.languageSection")) {
@@ -144,10 +145,38 @@ struct SettingsView: View {
                 TextField(text("settings.defaultSubnet"), text: $defaultSubnetMask)
                     .textFieldStyle(.roundedBorder)
             }
+
+            Section(text("settings.sudoersSection")) {
+                HStack {
+                    Text(text("settings.sudoersStatus"))
+                    Spacer()
+                    Text(sudoersStatus.isEmpty
+                        ? (SudoersAccessManager.isInstalled ? text("settings.sudoersInstalled") : text("settings.sudoersNotInstalled"))
+                        : sudoersStatus)
+                        .foregroundStyle(.secondary)
+                }
+
+                Button(SudoersAccessManager.isInstalled ? text("settings.sudoersRemove") : text("settings.sudoersInstall")) {
+                    installOrRemoveSudoers()
+                }
+                .disabled(isSudoersBusy)
+            }
         }
         .formStyle(.grouped)
         .padding(20)
         .frame(width: 440)
+    }
+
+    func installOrRemoveSudoers() {
+        let shouldInstall = !SudoersAccessManager.isInstalled
+        isSudoersBusy = true
+        sudoersStatus = shouldInstall ? text("settings.sudoersInstalling") : text("settings.sudoersRemoving")
+
+        Task {
+            let result = shouldInstall ? await SudoersAccessManager.install() : await SudoersAccessManager.remove()
+            isSudoersBusy = false
+            sudoersStatus = result.success ? "" : result.message
+        }
     }
 
     func text(_ key: String) -> String {

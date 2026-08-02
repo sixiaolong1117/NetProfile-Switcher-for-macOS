@@ -56,6 +56,14 @@
 "settings.networkServices" = "Network Services";
 "settings.refreshOnLaunch" = "Refresh service list on launch";
 "settings.showDisabled" = "Show disabled network services";
+"settings.sudoersSection" = "Passwordless Network Switching";
+"settings.sudoersStatus" = "Status";
+"settings.sudoersInstalled" = "Enabled (switches run without a password)";
+"settings.sudoersNotInstalled" = "Not configured";
+"settings.sudoersInstall" = "Enable Passwordless Switching";
+"settings.sudoersRemove" = "Remove Passwordless Switching";
+"settings.sudoersInstalling" = "Requesting administrator authorization...";
+"settings.sudoersRemoving" = "Removing...";
 "status.applied" = "Applied %@.";
 "status.applyFailed" = "Failed: %@";
 "status.applying" = "Applying %@...";
@@ -63,6 +71,8 @@
 "status.defaultConfiguration" = "selected configuration";
 "status.dhcpComplete" = "%@ is now using DHCP.";
 "status.dhcpSwitching" = "Switching %@ to DHCP...";
+"status.sudoersInstallFailedDetail" = "Passwordless network switching setup failed. Approve the administrator request, then try again.";
+"status.sudoersUnavailable" = "Passwordless network switching is unavailable. Enable it in Settings, then try again.";
 "status.loadServicesFailed" = "Failed to load network services.";
 "status.loadServicesFailedDetail" = "Failed to load network services: %@";
 "status.networkRequired" = "Network service name is required.";

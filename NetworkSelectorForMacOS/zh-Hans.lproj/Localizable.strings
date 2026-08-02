@@ -56,6 +56,14 @@
 "settings.networkServices" = "网络服务";
 "settings.refreshOnLaunch" = "启动时刷新服务列表";
 "settings.showDisabled" = "显示已禁用的网络服务";
+"settings.sudoersSection" = "免密网络切换";
+"settings.sudoersStatus" = "状态";
+"settings.sudoersInstalled" = "已启用（切换无需输入密码）";
+"settings.sudoersNotInstalled" = "未配置";
+"settings.sudoersInstall" = "启用免密网络切换";
+"settings.sudoersRemove" = "移除免密网络切换";
+"settings.sudoersInstalling" = "正在请求管理员授权...";
+"settings.sudoersRemoving" = "正在移除...";
 "status.applied" = "已应用 %@。";
 "status.applyFailed" = "失败：%@";
 "status.applying" = "正在应用 %@...";
@@ -63,6 +71,8 @@
 "status.defaultConfiguration" = "所选配置";
 "status.dhcpComplete" = "%@ 已切换为 DHCP。";
 "status.dhcpSwitching" = "正在将 %@ 切换到 DHCP...";
+"status.sudoersInstallFailedDetail" = "免密网络切换配置失败。请在系统提示中完成管理员授权后重试。";
+"status.sudoersUnavailable" = "免密网络切换不可用。请在设置中启用后重试。";
 "status.loadServicesFailed" = "加载网络服务失败。";
 "status.loadServicesFailedDetail" = "加载网络服务失败：%@";
 "status.networkRequired" = "需要网络服务名称。";

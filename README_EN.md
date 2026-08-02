@@ -31,7 +31,7 @@ It is ideal for scenarios where you frequently switch between direct connections
 
 - **Multi-configuration Management**: Save configuration names, IPv4 addresses, subnet masks, gateways, and DNS servers.
 - **One-Click Apply Preset**: Select a configuration and click Apply to switch — keyboard shortcut (Enter) is also supported.
-- **Administrator Authorization**: Uses the `networksetup` command to switch network parameters, triggering administrator permission prompts via `osascript`.
+- **One-time Passwordless Authorization**: Configures a restricted `sudoers` rule on the first network change, then runs `networksetup` without further password prompts.
 - **Quick DHCP Recovery**: Switch back to DHCP with a single click and clear custom DNS settings.
 - **macOS Shortcuts Integration**: Exposes two App Intents — `Apply Network Configuration` and `Switch Network Service to DHCP` — which can be used in Shortcuts combined with conditions, time triggers, location-based automation, and more.
 

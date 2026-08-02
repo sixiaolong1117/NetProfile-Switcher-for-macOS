@@ -3,8 +3,6 @@
 //  NetworkSelectorForMacOS
 //  处理网络配置的自动化逻辑，包括执行系统命令和提供快捷指令支持
 //
-//  Created by 司晓龙 on 2026/5/13.
-//
 
 import AppIntents
 import Foundation
@@ -47,17 +45,14 @@ enum NetworkAutomation {
             return NetworkAutomationResult(success: false, message: text("status.staticFieldsRequired"))
         }
 
-        // 构建系统命令，使用 networksetup 工具设置静态 IP 和 DNS 服务器
-        let quotedService = shellQuoted(service)
-        let dnsArguments = dnsServers.isEmpty
-            ? "Empty"
-            : dnsServers.map(shellQuoted).joined(separator: " ")
-        let command = """
-        /usr/sbin/networksetup -setmanual \(quotedService) \(shellQuoted(ipAddress)) \(shellQuoted(subnetMask)) \(shellQuoted(router)) && /usr/sbin/networksetup -setdnsservers \(quotedService) \(dnsArguments)
-        """
+        // 构建 networksetup 参数，设置静态 IP 和 DNS 服务器
+        let commands = [
+            ["-setmanual", service, ipAddress, subnetMask, router],
+            ["-setdnsservers", service] + (dnsServers.isEmpty ? ["Empty"] : dnsServers)
+        ]
 
-        // 执行命令并返回结果，使用管理员权限运行以确保有足够的权限修改网络设置
-        return await runAuthorized(command: command)
+        // 首次使用时安装 sudoers 授权，之后通过 sudo -n 免密执行。
+        return await runAuthorizedCommands(commands)
     }
 
     // 将指定的网络服务切换到 DHCP 模式，并清除自定义 DNS 服务器设置
@@ -70,14 +65,31 @@ enum NetworkAutomation {
             return NetworkAutomationResult(success: false, message: text("status.networkRequired"))
         }
 
-        // 构建系统命令，使用 networksetup 工具切换到 DHCP 模式并清除 DNS 服务器设置
-        let quotedService = shellQuoted(service)
-        let command = """
-        /usr/sbin/networksetup -setdhcp \(quotedService) && /usr/sbin/networksetup -setdnsservers \(quotedService) Empty
-        """
+        // 构建 networksetup 参数，切换到 DHCP 模式并清除 DNS 服务器设置
+        let commands = [
+            ["-setdhcp", service],
+            ["-setdnsservers", service, "Empty"]
+        ]
 
-        // 执行命令并返回结果，使用管理员权限运行以确保有足够的权限修改网络设置
-        return await runAuthorized(command: command)
+        // 优先通过特权助手免密执行，否则回退到管理员授权弹窗
+        return await runAuthorizedCommands(commands)
+    }
+
+    // 执行一组 networksetup 命令：首次使用时一次性安装 sudoers 授权，失败时不回退到每次弹密码的 osascript。
+    private static func runAuthorizedCommands(_ commands: [[String]]) async -> NetworkAutomationResult {
+        if let result = await SudoersAccessManager.execute(commands) {
+            return NetworkAutomationResult(success: result.success, message: result.message)
+        }
+
+        let installation = await SudoersAccessManager.install()
+        guard installation.success else {
+            return NetworkAutomationResult(success: false, message: text("status.sudoersInstallFailedDetail") + " " + installation.message)
+        }
+
+        guard let result = await SudoersAccessManager.execute(commands) else {
+            return NetworkAutomationResult(success: false, message: text("status.sudoersUnavailable"))
+        }
+        return NetworkAutomationResult(success: result.success, message: result.message)
     }
 
     /// 获取当前网络服务的 IP、子网掩码、网关信息
@@ -165,49 +177,6 @@ enum NetworkAutomation {
             router: router,
             dnsServers: dnsServers
         )
-    }
-
-    // 使用管理员权限执行系统命令
-    static func runAuthorized(command: String) async -> NetworkAutomationResult {
-        await withCheckedContinuation { continuation in
-            DispatchQueue.global(qos: .userInitiated).async {
-                let script = """
-                on run argv
-                    do shell script (item 1 of argv) with administrator privileges
-                end run
-                """
-
-                let process = Process()
-                let outputPipe = Pipe()
-                let errorPipe = Pipe()
-
-                process.executableURL = URL(fileURLWithPath: "/usr/bin/osascript")  // 使用 osascript
-                process.arguments = ["-e", script, command]
-                process.standardOutput = outputPipe
-                process.standardError = errorPipe
-
-                do {
-                    try process.run()
-                    process.waitUntilExit()
-
-                    let output = readText(from: outputPipe)
-                    let error = readText(from: errorPipe)
-                    let message = error.isEmpty ? output : error
-
-                    continuation.resume(returning: NetworkAutomationResult(
-                        success: process.terminationStatus == 0,
-                        message: message.isEmpty
-                            ? appText("status.commandExited", languageSetting: AppLanguage.system.rawValue, process.terminationStatus)
-                            : message
-                    ))
-                } catch {
-                    continuation.resume(returning: NetworkAutomationResult(
-                        success: false,
-                        message: error.localizedDescription
-                    ))
-                }
-            }
-        }
     }
 
     static func readText(from pipe: Pipe) -> String {
