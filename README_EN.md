@@ -66,7 +66,7 @@ git clone https://github.com/sixiaolong1117/NetProfile-Switcher-for-macOS.git
 
 ### ➕ Add a Static Network Configuration
 
-1. Click the **＋** button in the configuration list.
+1. Click the **＋** button in the toolbar.
 2. Fill in a configuration name, e.g., "Bypass Gateway" or "Corporate Network".
 3. Fill in the IPv4 address, subnet mask, gateway, and DNS servers.
 4. Click **Save** to save the configuration.
@@ -75,7 +75,7 @@ git clone https://github.com/sixiaolong1117/NetProfile-Switcher-for-macOS.git
 
 | Action | Description |
 |--------|-------------|
-| Select config → Apply | Immediately apply the static network configuration from its detail page; the context-menu shortcut is also available |
+| Select config → Apply | Select a configuration, then click the toolbar Apply button to immediately apply the static network configuration; the context-menu shortcut is also available |
 | DHCP button | Switch the current network service back to DHCP and clear DNS |
 | Right-side Current Network Info panel | View the IP address, subnet mask, gateway, and DNS currently active on the network service |
 

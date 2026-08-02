@@ -65,7 +65,7 @@ git clone https://github.com/sixiaolong1117/NetProfile-Switcher-for-macOS.git
 
 ### ➕ 添加静态网络配置
 
-1. 在配置列表点击 **＋** 按钮。
+1. 在工具栏点击 **＋** 按钮。
 2. 填写配置名称，例如"旁路网关"或"公司网络"。
 3. 填写 IPv4 地址、子网掩码、网关与 DNS 服务器。
 4. 点击 **Save** 保存配置。
@@ -74,7 +74,7 @@ git clone https://github.com/sixiaolong1117/NetProfile-Switcher-for-macOS.git
 
 | 操作 | 说明 |
 |------|------|
-| 选择配置 → 应用 | 在详情页立即将该静态网络配置应用到当前网络服务；也支持右键菜单快速切换 |
+| 选择配置 → 应用 | 选中配置后点击工具栏「应用」按钮立即将该静态网络配置应用到当前网络服务；也支持右键菜单快速切换 |
 | DHCP 按钮 | 将当前网络服务切回 DHCP 地址并清空 DNS |
 | 右侧当前网络信息面板 | 查看当前网络服务实际生效的 IP、子网掩码、网关与 DNS |
 
