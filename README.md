@@ -1,3 +1,11 @@
+> [!WARNING]
+> 本应用未经过 Apple 开发者签名与公证，首次运行时 macOS 可能提示「已损坏，无法打开」。
+> 请在终端执行一次以下命令，然后重新打开应用：
+>
+> ```bash
+> xattr -dr com.apple.quarantine "/Applications/NetProfile Switcher.app"
+> ```
+
 # NetProfile Switcher for macOS
 
 <div align="center">
@@ -47,7 +55,7 @@ NetProfile Switcher for macOS 是一款面向 macOS 桌面的网络配置预设�
 
 从 [GitHub Releases](https://github.com/sixiaolong1117/NetProfile-Switcher-for-macOS/releases) 下载最新的 `.dmg` 安装包。
 
-首次运行时，macOS 可能会提示确认打开来自网络下载的应用，请在「系统设置 → 隐私与安全性」中允许运行。
+首次运行时若被 Gatekeeper 拦截，请先按文首的警告说明执行 `xattr` 命令。
 
 #### 🛠️ 从源码构建
 

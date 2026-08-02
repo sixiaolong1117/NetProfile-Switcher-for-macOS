@@ -1,3 +1,11 @@
+> [!WARNING]
+> This app is not signed or notarized by Apple. On first launch, macOS may report it as "damaged" and refuse to open it.
+> Run the following command once in Terminal, then open the app again:
+>
+> ```bash
+> xattr -dr com.apple.quarantine "/Applications/NetProfile Switcher.app"
+> ```
+
 # NetProfile Switcher for macOS
 
 <div align="center">
@@ -48,7 +56,7 @@ It is ideal for scenarios where you frequently switch between direct connections
 
 Download the latest `.dmg` installer from [GitHub Releases](https://github.com/sixiaolong1117/NetProfile-Switcher-for-macOS/releases).
 
-On the first launch, macOS may prompt you to confirm opening an app downloaded from the internet. Go to **System Settings → Privacy & Security** to allow it to run.
+On the first launch, if Gatekeeper blocks the app, run the `xattr` command shown in the warning at the top of this page first.
 
 #### 🛠️ Build from Source
 
