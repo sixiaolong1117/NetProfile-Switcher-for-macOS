@@ -30,7 +30,7 @@ It is ideal for scenarios where you frequently switch between direct connections
 ## ✨ Features
 
 - **Multi-configuration Management**: Save configuration names, IPv4 addresses, subnet masks, gateways, and DNS servers.
-- **One-Click Apply Preset**: Select a configuration and click Apply to switch — keyboard shortcut (Enter) is also supported.
+- **Quick Preset Switching**: Select a configuration in the sidebar and click Apply to switch; the context-menu shortcut remains available.
 - **One-time Passwordless Authorization**: Configures a restricted `sudoers` rule on the first network change, then runs `networksetup` without further password prompts.
 - **Quick DHCP Recovery**: Switch back to DHCP with a single click and clear custom DNS settings.
 - **macOS Shortcuts Integration**: Exposes two App Intents — `Apply Network Configuration` and `Switch Network Service to DHCP` — which can be used in Shortcuts combined with conditions, time triggers, location-based automation, and more.
@@ -75,9 +75,9 @@ git clone https://github.com/sixiaolong1117/NetProfile-Switcher-for-macOS.git
 
 | Action | Description |
 |--------|-------------|
-| Select a config → Apply | Immediately apply the static network configuration to the current network service |
+| Select config → Apply | Immediately apply the static network configuration from its detail page; the context-menu shortcut is also available |
 | DHCP button | Switch the current network service back to DHCP and clear DNS |
-| Right-side detail panel | View the full parameters of the currently selected configuration |
+| Right-side Current Network Info panel | View the IP address, subnet mask, gateway, and DNS currently active on the network service |
 
 > After applying a configuration, the network panel in macOS System Settings may need to be reopened to show the updated results.
 

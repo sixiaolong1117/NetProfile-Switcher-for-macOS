@@ -13,17 +13,20 @@
 "Switch to DHCP" = "切换到 DHCP";
 
 "about.author" = "作者";
+"about.authorName" = "司晓龙";
 "about.description" = "一个 macOS 网络配置切换器，可以在多个预设配置间快速切换。";
 "about.license" = "License";
 "about.repository" = "Repo";
 "about.title" = "关于 NetProfile Switcher";
 "about.version" = "版本 %@";
-"action.apply" = "应用";
 "action.cancel" = "取消";
+"action.apply" = "应用";
 "action.dhcp" = "DHCP";
 "action.edit" = "编辑";
 "action.save" = "保存";
+"action.switchConfiguration" = "切换配置";
 "configuration.add" = "添加配置";
+"configuration.addHint" = "新建配置后即可快速切换网络设置。";
 "configuration.copyName" = "%@ 副本";
 "configuration.copyUntitled" = "未命名副本";
 "configuration.delete" = "删除配置";
@@ -34,6 +37,7 @@
 "configuration.nextName" = "配置 %d";
 "configuration.noIP" = "未设置 IP 地址";
 "configuration.noneSelected" = "未选择配置";
+"configuration.selectHint" = "从侧边栏选择一个配置以查看并应用。";
 "configuration.static" = "静态 IP 配置";
 "configuration.title" = "配置列表";
 "configuration.untitled" = "未命名";
@@ -48,6 +52,7 @@
 "language.simplifiedChinese" = "简体中文";
 "language.system" = "跟随系统";
 "network.label" = "网络";
+"network.disabledService" = "%@（已禁用）";
 "network.noServices" = "无网络服务";
 "settings.defaultSubnet" = "默认子网掩码";
 "settings.language" = "应用语言";
@@ -76,7 +81,6 @@
 "status.loadServicesFailed" = "加载网络服务失败。";
 "status.loadServicesFailedDetail" = "加载网络服务失败：%@";
 "status.networkRequired" = "需要网络服务名称。";
-"status.profileRequired" = "请先选择一个配置。";
 "status.staticFieldsRequired" = "IP 地址、子网掩码和网关不能为空。";
 "status.currentInfo" = "当前网络信息";
 "status.currentIP" = "当前 IP";

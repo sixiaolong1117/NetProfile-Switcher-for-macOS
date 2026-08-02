@@ -13,17 +13,20 @@
 "Switch to DHCP" = "Switch to DHCP";
 
 "about.author" = "Author";
+"about.authorName" = "Sixiaolong";
 "about.description" = "A macOS network configuration switcher for quickly switching between multiple preset configurations.";
-"about.license" = "许可证";
-"about.repository" = "仓库";
+"about.license" = "License";
+"about.repository" = "Repository";
 "about.title" = "About NetProfile Switcher";
 "about.version" = "Version %@";
-"action.apply" = "Apply";
 "action.cancel" = "Cancel";
+"action.apply" = "Apply";
 "action.dhcp" = "DHCP";
 "action.edit" = "Edit";
 "action.save" = "Save";
+"action.switchConfiguration" = "Switch Configuration";
 "configuration.add" = "Add Configuration";
+"configuration.addHint" = "Create a configuration to begin switching network settings.";
 "configuration.copyName" = "%@ Copy";
 "configuration.copyUntitled" = "Untitled Copy";
 "configuration.delete" = "Delete Configuration";
@@ -34,7 +37,8 @@
 "configuration.nextName" = "Configuration %d";
 "configuration.noIP" = "No IP address";
 "configuration.noneSelected" = "No Configuration Selected";
-"configuration.static" = "Static IP configuration";
+"configuration.selectHint" = "Select a configuration from the sidebar to view and apply it.";
+"configuration.static" = "Static IP Configuration";
 "configuration.title" = "Configurations";
 "configuration.untitled" = "Untitled";
 "editor.dns" = "DNS Servers";
@@ -48,6 +52,7 @@
 "language.simplifiedChinese" = "Simplified Chinese";
 "language.system" = "System";
 "network.label" = "Network";
+"network.disabledService" = "%@ (Disabled)";
 "network.noServices" = "No Services";
 "settings.defaultSubnet" = "Default subnet mask";
 "settings.language" = "Application Language";
@@ -76,7 +81,6 @@
 "status.loadServicesFailed" = "Failed to load network services.";
 "status.loadServicesFailedDetail" = "Failed to load network services: %@";
 "status.networkRequired" = "Network service name is required.";
-"status.profileRequired" = "Select a configuration first.";
 "status.staticFieldsRequired" = "IP address, subnet mask, and router are required.";
 "status.currentInfo" = "Current Network Info";
 "status.currentIP" = "Current IP";

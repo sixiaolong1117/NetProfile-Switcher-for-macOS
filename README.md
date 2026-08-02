@@ -29,7 +29,7 @@ NetProfile Switcher for macOS 是一款面向 macOS 桌面的网络配置预设�
 ## ✨ 功能特性
 
 - **多配置管理**：保存配置名称、IPv4 地址、子网掩码、网关与 DNS 服务器。
-- **一键应用预设**：选中配置后点击 Apply 即可切换，支持键盘快捷键（Enter）。
+- **快速切换预设**：在侧边栏选择配置后点击「应用」即可切换，也支持右键菜单快速应用。
 - **一次授权免密执行**：首次切换网络参数时配置受限的 `sudoers` 规则，之后调用 `networksetup` 不再要求输入密码。
 - **DHCP 快捷恢复**：可一键切回 DHCP 地址并清空自定义 DNS。
 - **macOS 快捷指令集成**：暴露 `Apply Network Configuration` 与 `Switch Network Service to DHCP` 两个 App Intents，可在快捷指令中结合条件、时间、位置等自动化规则使用。
@@ -74,9 +74,9 @@ git clone https://github.com/sixiaolong1117/NetProfile-Switcher-for-macOS.git
 
 | 操作 | 说明 |
 |------|------|
-| 选中配置 → Apply | 立即将该静态网络配置应用到当前网络服务 |
+| 选择配置 → 应用 | 在详情页立即将该静态网络配置应用到当前网络服务；也支持右键菜单快速切换 |
 | DHCP 按钮 | 将当前网络服务切回 DHCP 地址并清空 DNS |
-| 右侧详情面板 | 查看当前选中配置的完整参数 |
+| 右侧当前网络信息面板 | 查看当前网络服务实际生效的 IP、子网掩码、网关与 DNS |
 
 > 应用配置后，macOS 系统设置中的网络面板可能需要重新打开才能显示最新结果。
 

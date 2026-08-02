@@ -16,6 +16,9 @@ struct NetworkSelectorForMacOSApp: App {
         WindowGroup {
             ContentView()
         }
+        .commands {
+            AppCommands()
+        }
 
         // 关于窗口 独立的窗口
         Window(appText("about.title", languageSetting: appLanguage), id: "about") {
@@ -26,9 +29,6 @@ struct NetworkSelectorForMacOSApp: App {
         // 设置窗口 系统提供的固定入口
         Settings {
             SettingsView()
-        }
-        .commands {         // 注入自定义菜单栏命令
-            AppCommands()
         }
     }
 }
