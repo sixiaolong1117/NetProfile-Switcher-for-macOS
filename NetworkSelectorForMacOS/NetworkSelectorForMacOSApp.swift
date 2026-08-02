@@ -14,7 +14,7 @@ struct NetworkSelectorForMacOSApp: App {
 
     var body: some Scene {
         // 主窗口
-        WindowGroup(id: "main") {
+        Window(appText("title", languageSetting: appLanguage), id: "main") {
             ContentView()
         }
         .commands {
