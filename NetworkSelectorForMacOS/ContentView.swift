@@ -577,7 +577,33 @@ struct ContentView: View {
                 ? appText("status.dhcpComplete", languageSetting: appLanguage, service)
                 : appText("status.applyFailed", languageSetting: appLanguage, result.message)
             if result.success {
-                refreshCurrentNetworkInfo()
+                refreshCurrentNetworkInfoPolling()
+            }
+        }
+    }
+
+    // DHCP 切换成功后轮询刷新网络信息，等待网卡获取 DHCP 租约（获取 IP 需要几秒）
+    func refreshCurrentNetworkInfoPolling() {
+        let service = serviceName.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !service.isEmpty else {
+            refreshCurrentNetworkInfo()
+            return
+        }
+
+        isLoadingInfo = true
+
+        DispatchQueue.global(qos: .userInitiated).async {
+            var info = NetworkAutomation.getCurrentNetworkInfo(serviceName: service)
+            var attempts = 0
+            while info.isEmpty && attempts < 10 {
+                Thread.sleep(forTimeInterval: 0.5)
+                info = NetworkAutomation.getCurrentNetworkInfo(serviceName: service)
+                attempts += 1
+            }
+
+            DispatchQueue.main.async {
+                currentNetworkInfo = info
+                isLoadingInfo = false
             }
         }
     }
