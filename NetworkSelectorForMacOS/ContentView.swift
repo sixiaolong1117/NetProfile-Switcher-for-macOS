@@ -76,7 +76,7 @@ struct ContentView: View {
                     Button {
                         apply(profile: selectedProfile)
                     } label: {
-                        Label(text("action.apply"), systemImage: "checkmark")
+                        Label(appText("action.apply", languageSetting: appLanguage), systemImage: "checkmark")
                     }
                     .keyboardShortcut(.return)
                     .disabled(isSwitching)
@@ -84,7 +84,7 @@ struct ContentView: View {
                     Button {
                         editProfile(selectedProfile)
                     } label: {
-                        Label(text("action.edit"), systemImage: "pencil")
+                        Label(appText("action.edit", languageSetting: appLanguage), systemImage: "pencil")
                     }
                     .disabled(isSwitching)
                 }
@@ -92,13 +92,13 @@ struct ContentView: View {
                 Button {
                     addProfile()
                 } label: {
-                    Label(text("configuration.add"), systemImage: "plus")
+                    Label(appText("configuration.add", languageSetting: appLanguage), systemImage: "plus")
                 }
 
                 Button {
                     refreshCurrentNetworkInfo()
                 } label: {
-                    Label(text("status.refreshInfo"), systemImage: "arrow.clockwise")
+                    Label(appText("status.refreshInfo", languageSetting: appLanguage), systemImage: "arrow.clockwise")
                 }
                 .disabled(isLoadingInfo)
             }
@@ -125,7 +125,7 @@ struct ContentView: View {
         }
         .sheet(isPresented: $isEditorPresented) {
             NetworkProfileEditor(
-                title: editingProfileID == nil ? text("configuration.new") : text("configuration.edit"),
+                title: editingProfileID == nil ? appText("configuration.new", languageSetting: appLanguage) : appText("configuration.edit", languageSetting: appLanguage),
                 profile: $draftProfile,
                 languageSetting: appLanguage,
                 onCancel: { isEditorPresented = false },
@@ -138,13 +138,13 @@ struct ContentView: View {
     var sidebar: some View {
         if profiles.isEmpty {
             ContentUnavailableView(
-                text("configuration.empty"),
+                appText("configuration.empty", languageSetting: appLanguage),
                 systemImage: "list.bullet.rectangle",
-                description: Text(text("configuration.addHint"))
+                description: Text(appText("configuration.addHint", languageSetting: appLanguage))
             )
-            .navigationTitle(text("configuration.title"))
+            .navigationTitle(appText("configuration.title", languageSetting: appLanguage))
             .contextMenu {
-                Button(text("configuration.add")) {
+                Button(appText("configuration.add", languageSetting: appLanguage)) {
                     addProfile()
                 }
             }
@@ -154,31 +154,31 @@ struct ContentView: View {
                     profileRow(profile)
                         .tag(profile.id)
                         .contextMenu {
-                            Button(text("action.switchConfiguration")) {
+                            Button(appText("action.switchConfiguration", languageSetting: appLanguage)) {
                                 apply(profile: profile)
                             }
                             .disabled(isSwitching)
 
-                            Button(text("configuration.edit")) {
+                            Button(appText("configuration.edit", languageSetting: appLanguage)) {
                                 editProfile(profile)
                             }
 
-                            Button(text("configuration.duplicate")) {
+                            Button(appText("configuration.duplicate", languageSetting: appLanguage)) {
                                 duplicateProfile(profile)
                             }
 
                             Divider()
 
-                            Button(text("configuration.delete"), role: .destructive) {
+                            Button(appText("configuration.delete", languageSetting: appLanguage), role: .destructive) {
                                 deleteProfile(profile)
                             }
                         }
                 }
             }
             .listStyle(.sidebar)
-            .navigationTitle(text("configuration.title"))
+            .navigationTitle(appText("configuration.title", languageSetting: appLanguage))
             .contextMenu {
-                Button(text("configuration.add")) {
+                Button(appText("configuration.add", languageSetting: appLanguage)) {
                     addProfile()
                 }
             }
@@ -189,10 +189,10 @@ struct ContentView: View {
         HStack {
             Label {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(profile.name.isEmpty ? text("configuration.untitled") : profile.name)
+                    Text(profile.name.isEmpty ? appText("configuration.untitled", languageSetting: appLanguage) : profile.name)
                         .lineLimit(1)
 
-                    Text(profile.ipAddress.isEmpty ? text("configuration.noIP") : profile.ipAddress)
+                    Text(profile.ipAddress.isEmpty ? appText("configuration.noIP", languageSetting: appLanguage) : profile.ipAddress)
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
@@ -206,7 +206,7 @@ struct ContentView: View {
             if profile.id == currentProfile?.id {
                 Image(systemName: "checkmark.circle.fill")
                     .foregroundStyle(.tint)
-                    .accessibilityLabel(text("status.currentProfile"))
+                    .accessibilityLabel(appText("status.currentProfile", languageSetting: appLanguage))
             }
         }
         .contentShape(Rectangle())
@@ -219,9 +219,9 @@ struct ContentView: View {
             profileDetail(selectedProfile)
         } else {
             ContentUnavailableView(
-                text("configuration.noneSelected"),
+                appText("configuration.noneSelected", languageSetting: appLanguage),
                 systemImage: "network",
-                description: Text(text("configuration.selectHint"))
+                description: Text(appText("configuration.selectHint", languageSetting: appLanguage))
             )
         }
     }
@@ -229,7 +229,7 @@ struct ContentView: View {
     var networkServicePicker: some View {
         Picker(selection: $serviceName) {
             if visibleNetworkServices.isEmpty {
-                Text(serviceName.isEmpty ? text("network.noServices") : serviceName)
+                Text(serviceName.isEmpty ? appText("network.noServices", languageSetting: appLanguage) : serviceName)
                     .tag(serviceName)
             } else {
                 ForEach(visibleNetworkServices) { service in
@@ -240,7 +240,7 @@ struct ContentView: View {
                 }
             }
         } label: {
-            Label(text("network.label"), systemImage: "network")
+            Label(appText("network.label", languageSetting: appLanguage), systemImage: "network")
         }
         .frame(minWidth: 150, idealWidth: 180)
         .disabled(isLoadingServices || visibleNetworkServices.isEmpty)
@@ -248,28 +248,28 @@ struct ContentView: View {
 
     func profileDetail(_ profile: NetworkProfile) -> some View {
         Form {
-            Section(text("configuration.static")) {
-                readOnlyRow(text("editor.ip"), value: profile.ipAddress)
-                readOnlyRow(text("editor.subnet"), value: profile.subnetMask)
-                readOnlyRow(text("editor.router"), value: profile.router)
-                readOnlyRow(text("editor.dns"), value: profile.dnsServers)
+            Section(appText("configuration.static", languageSetting: appLanguage)) {
+                readOnlyRow(appText("editor.ip", languageSetting: appLanguage), value: profile.ipAddress)
+                readOnlyRow(appText("editor.subnet", languageSetting: appLanguage), value: profile.subnetMask)
+                readOnlyRow(appText("editor.router", languageSetting: appLanguage), value: profile.router)
+                readOnlyRow(appText("editor.dns", languageSetting: appLanguage), value: profile.dnsServers)
             }
 
-            Section(text("status.currentInfo")) {
+            Section(appText("status.currentInfo", languageSetting: appLanguage)) {
                 if isLoadingInfo {
-                    LabeledContent(text("status.refreshInfo")) {
+                    LabeledContent(appText("status.refreshInfo", languageSetting: appLanguage)) {
                         ProgressView()
                             .controlSize(.small)
                     }
                 } else if currentNetworkInfo.isEmpty {
-                    Text(text("status.noInfo"))
+                    Text(appText("status.noInfo", languageSetting: appLanguage))
                         .foregroundStyle(.secondary)
                 } else {
-                    readOnlyRow(text("status.currentProfile"), value: currentProfileLabel)
-                    readOnlyRow(text("status.currentIP"), value: currentNetworkInfo.ipAddress)
-                    readOnlyRow(text("status.currentSubnet"), value: currentNetworkInfo.subnetMask)
-                    readOnlyRow(text("status.currentRouter"), value: currentNetworkInfo.router)
-                    readOnlyRow(text("status.currentDNS"), value: currentNetworkInfo.dnsServersString)
+                    readOnlyRow(appText("status.currentProfile", languageSetting: appLanguage), value: currentProfileLabel)
+                    readOnlyRow(appText("status.currentIP", languageSetting: appLanguage), value: currentNetworkInfo.ipAddress)
+                    readOnlyRow(appText("status.currentSubnet", languageSetting: appLanguage), value: currentNetworkInfo.subnetMask)
+                    readOnlyRow(appText("status.currentRouter", languageSetting: appLanguage), value: currentNetworkInfo.router)
+                    readOnlyRow(appText("status.currentDNS", languageSetting: appLanguage), value: currentNetworkInfo.dnsServersString)
                 }
             }
 
@@ -277,7 +277,7 @@ struct ContentView: View {
                 Button {
                     switchToDHCP()
                 } label: {
-                    Label(text("action.dhcp"), systemImage: "arrow.triangle.2.circlepath")
+                    Label(appText("action.dhcp", languageSetting: appLanguage), systemImage: "arrow.triangle.2.circlepath")
                 }
                 .buttonStyle(.glass)
                 .disabled(isSwitching)
@@ -290,7 +290,7 @@ struct ContentView: View {
             }
         }
         .formStyle(.grouped)
-        .navigationTitle(profile.name.isEmpty ? text("configuration.untitled") : profile.name)
+        .navigationTitle(profile.name.isEmpty ? appText("configuration.untitled", languageSetting: appLanguage) : profile.name)
     }
 
     func readOnlyRow(_ title: String, value: String) -> some View {
@@ -313,10 +313,6 @@ struct ContentView: View {
 
     var currentProfileLabel: String {
         NetworkAutomation.currentProfileLabel(for: currentNetworkInfo, profiles: profiles, languageSetting: appLanguage)
-    }
-
-    func text(_ key: String) -> String {
-        appText(key, languageSetting: appLanguage)
     }
 
     var visibleNetworkServices: [NetworkService] {
@@ -362,7 +358,7 @@ struct ContentView: View {
         var copy = profile
         copy.id = UUID()
         copy.name = profile.name.isEmpty
-            ? text("configuration.copyUntitled")
+            ? appText("configuration.copyUntitled", languageSetting: appLanguage)
             : appText("configuration.copyName", languageSetting: appLanguage, profile.name)
         profiles.append(copy)
         selectedProfileID = copy.id
@@ -382,7 +378,7 @@ struct ContentView: View {
     func switchToDHCP() {
         let service = serviceName.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !service.isEmpty else {
-            statusMessage = text("status.networkRequired")
+            statusMessage = appText("status.networkRequired", languageSetting: appLanguage)
             return
         }
 
@@ -420,7 +416,7 @@ struct ContentView: View {
         guard !isSwitching else { return }
 
         let name = profile.name.trimmingCharacters(in: .whitespacesAndNewlines)
-        let displayName = name.isEmpty ? text("status.defaultConfiguration") : name
+        let displayName = name.isEmpty ? appText("status.defaultConfiguration", languageSetting: appLanguage) : name
         isSwitching = true
         statusMessage = appText("status.applying", languageSetting: appLanguage, displayName)
 
@@ -479,7 +475,7 @@ struct ContentView: View {
                         serviceName = visibleNetworkServices.first?.name ?? serviceName
                     }
                     if process.terminationStatus != 0 {
-                        statusMessage = error.isEmpty ? text("status.loadServicesFailed") : error
+                        statusMessage = error.isEmpty ? appText("status.loadServicesFailed", languageSetting: appLanguage) : error
                     }
                 }
             } catch {
@@ -536,26 +532,26 @@ struct NetworkProfileEditor: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section(text("configuration.static")) {
-                    TextField(text("editor.name"), text: $profile.name)
-                    TextField(text("editor.ip"), text: $profile.ipAddress)
-                    TextField(text("editor.subnet"), text: $profile.subnetMask)
-                    TextField(text("editor.router"), text: $profile.router)
-                    TextField(text("editor.dns"), text: $profile.dnsServers)
+                Section(appText("configuration.static", languageSetting: languageSetting)) {
+                    TextField(appText("editor.name", languageSetting: languageSetting), text: $profile.name)
+                    TextField(appText("editor.ip", languageSetting: languageSetting), text: $profile.ipAddress)
+                    TextField(appText("editor.subnet", languageSetting: languageSetting), text: $profile.subnetMask)
+                    TextField(appText("editor.router", languageSetting: languageSetting), text: $profile.router)
+                    TextField(appText("editor.dns", languageSetting: languageSetting), text: $profile.dnsServers)
                 }
             }
             .formStyle(.grouped)
             .navigationTitle(title)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button(text("action.cancel")) {
+                    Button(appText("action.cancel", languageSetting: languageSetting)) {
                         onCancel()
                     }
                     .keyboardShortcut(.cancelAction)
                 }
 
                 ToolbarItem(placement: .confirmationAction) {
-                    Button(text("action.save")) {
+                    Button(appText("action.save", languageSetting: languageSetting)) {
                         onSave()
                     }
                     .keyboardShortcut(.defaultAction)
@@ -563,10 +559,6 @@ struct NetworkProfileEditor: View {
             }
         }
         .frame(width: 460, height: 330)
-    }
-
-    func text(_ key: String) -> String {
-        appText(key, languageSetting: languageSetting)
     }
 }
 

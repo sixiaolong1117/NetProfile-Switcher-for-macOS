@@ -22,7 +22,7 @@ enum NetworkAutomation {
     }
 
     // 将指定的网络配置应用到指定的网络服务上，执行系统命令进行配置
-    static func apply(profile: NetworkProfile, serviceName: String) async -> NetworkAutomationResult {
+    static func apply(profile: NetworkProfile, serviceName: String) async -> SudoersAccessResult {
         // 清理输入，去除多余的空白字符
         let service = serviceName.trimmingCharacters(in: .whitespacesAndNewlines)
         let ipAddress = profile.ipAddress.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -37,12 +37,12 @@ enum NetworkAutomation {
 
         // 验证输入，确保网络服务名称和必要的静态 IP 配置字段不为空
         guard !service.isEmpty else {
-            return NetworkAutomationResult(success: false, message: text("status.networkRequired"))
+            return SudoersAccessResult(success: false, message: appText("status.networkRequired", languageSetting: AppLanguage.system.rawValue))
         }
 
         // 对于静态 IP 配置，IP 地址、子网掩码和网关都是必填项
         guard !ipAddress.isEmpty, !subnetMask.isEmpty, !router.isEmpty else {
-            return NetworkAutomationResult(success: false, message: text("status.staticFieldsRequired"))
+            return SudoersAccessResult(success: false, message: appText("status.staticFieldsRequired", languageSetting: AppLanguage.system.rawValue))
         }
 
         // 构建 networksetup 参数，设置静态 IP 和 DNS 服务器
@@ -56,13 +56,13 @@ enum NetworkAutomation {
     }
 
     // 将指定的网络服务切换到 DHCP 模式，并清除自定义 DNS 服务器设置
-    static func switchToDHCP(serviceName: String) async -> NetworkAutomationResult {
+    static func switchToDHCP(serviceName: String) async -> SudoersAccessResult {
         // 清理输入，去除多余的空白字符
         let service = serviceName.trimmingCharacters(in: .whitespacesAndNewlines)
 
         // 验证输入，确保网络服务名称不为空
         guard !service.isEmpty else {
-            return NetworkAutomationResult(success: false, message: text("status.networkRequired"))
+            return SudoersAccessResult(success: false, message: appText("status.networkRequired", languageSetting: AppLanguage.system.rawValue))
         }
 
         // 构建 networksetup 参数，切换到 DHCP 模式并清除 DNS 服务器设置
@@ -76,20 +76,20 @@ enum NetworkAutomation {
     }
 
     // 执行一组 networksetup 命令：首次使用时一次性安装 sudoers 授权，失败时不回退到每次弹密码的 osascript。
-    private static func runAuthorizedCommands(_ commands: [[String]]) async -> NetworkAutomationResult {
+    private static func runAuthorizedCommands(_ commands: [[String]]) async -> SudoersAccessResult {
         if let result = await SudoersAccessManager.execute(commands) {
-            return NetworkAutomationResult(success: result.success, message: result.message)
+            return SudoersAccessResult(success: result.success, message: result.message)
         }
 
         let installation = await SudoersAccessManager.install()
         guard installation.success else {
-            return NetworkAutomationResult(success: false, message: text("status.sudoersInstallFailedDetail") + " " + installation.message)
+            return SudoersAccessResult(success: false, message: appText("status.sudoersInstallFailedDetail", languageSetting: AppLanguage.system.rawValue) + " " + installation.message)
         }
 
         guard let result = await SudoersAccessManager.execute(commands) else {
-            return NetworkAutomationResult(success: false, message: text("status.sudoersUnavailable"))
+            return SudoersAccessResult(success: false, message: appText("status.sudoersUnavailable", languageSetting: AppLanguage.system.rawValue))
         }
-        return NetworkAutomationResult(success: result.success, message: result.message)
+        return SudoersAccessResult(success: result.success, message: result.message)
     }
 
     /// 获取当前网络服务的 IP、子网掩码、网关信息
@@ -240,10 +240,6 @@ enum NetworkAutomation {
     static func shellQuoted(_ value: String) -> String {
         "'\(value.replacingOccurrences(of: "'", with: "'\\''"))'"
     }
-
-    static func text(_ key: String) -> String {
-        appText(key, languageSetting: AppLanguage.system.rawValue)
-    }
 }
 
 // 网络信息结构体
@@ -265,12 +261,6 @@ struct NetworkInfoResult {
     }
 }
 
-// 网络自动化结果结构体
-struct NetworkAutomationResult {
-    let success: Bool
-    let message: String
-}
-
 // 网络配置实体
 struct NetworkProfileEntity: AppEntity {
     static let typeDisplayRepresentation = TypeDisplayRepresentation(name: "Network Configuration")
@@ -280,7 +270,7 @@ struct NetworkProfileEntity: AppEntity {
     let name: String
 
     var displayRepresentation: DisplayRepresentation {
-        DisplayRepresentation(title: "\(name.isEmpty ? NetworkAutomation.text("configuration.untitled") : name)")
+        DisplayRepresentation(title: "\(name.isEmpty ? appText("configuration.untitled", languageSetting: AppLanguage.system.rawValue) : name)")
     }
 }
 
@@ -326,16 +316,11 @@ struct ApplyNetworkConfigurationIntent: AppIntent {
 
     init() {}
 
-    init(configuration: NetworkProfileEntity, serviceName: String) {
-        self.configuration = configuration
-        self.serviceName = serviceName
-    }
-
     // 快捷指令执行逻辑
     func perform() async throws -> some IntentResult & ProvidesDialog {
         // 从存储的网络配置文件中查找与用户选择的配置 ID 匹配的配置文件
         guard let profile = NetworkAutomation.storedProfiles().first(where: { $0.id.uuidString == configuration.id }) else {
-            return .result(dialog: "\(NetworkAutomation.text("intent.dialog.chooseConfiguration"))")
+            return .result(dialog: "\(appText("intent.dialog.chooseConfiguration", languageSetting: AppLanguage.system.rawValue))")
         }
 
         // 将选中的网络配置应用到指定的网络服务上，并根据结果返回相应的对话框提示用户操作结果
@@ -343,7 +328,7 @@ struct ApplyNetworkConfigurationIntent: AppIntent {
 
         // 根据执行结果返回不同的对话框提示，成功时显示应用成功的消息，失败时显示错误信息
         if result.success {
-            let displayName = profile.name.isEmpty ? NetworkAutomation.text("status.defaultConfiguration") : profile.name
+            let displayName = profile.name.isEmpty ? appText("status.defaultConfiguration", languageSetting: AppLanguage.system.rawValue) : profile.name
             return .result(dialog: "\(appText("intent.dialog.appliedToService", languageSetting: AppLanguage.system.rawValue, displayName, serviceName))")
         } else {
             return .result(dialog: "\(appText("status.applyFailed", languageSetting: AppLanguage.system.rawValue, result.message))")
@@ -363,10 +348,6 @@ struct SwitchNetworkServiceToDHCPIntent: AppIntent {
     var serviceName: String
 
     init() {}
-
-    init(serviceName: String) {
-        self.serviceName = serviceName
-    }
 
     // 快捷指令执行逻辑
     func perform() async throws -> some IntentResult & ProvidesDialog {

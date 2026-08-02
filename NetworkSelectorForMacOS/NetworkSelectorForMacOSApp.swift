@@ -70,30 +70,30 @@ struct MenuBarMenuView: View {
     @State private var isSwitching = false
 
     var body: some View {
-        Text("\(text("network.label")): \(serviceName.isEmpty ? text("network.noServices") : serviceName)")
+        Text("\(appText("network.label", languageSetting: appLanguage)): \(serviceName.isEmpty ? appText("network.noServices", languageSetting: appLanguage) : serviceName)")
             .disabled(true)
-        Text("\(text("status.currentProfile")): \(currentProfileLabel)")
+        Text("\(appText("status.currentProfile", languageSetting: appLanguage)): \(currentProfileLabel)")
             .disabled(true)
-        Text("\(text("status.currentIP")): \(displayValue(currentInfo.ipAddress))")
+        Text("\(appText("status.currentIP", languageSetting: appLanguage)): \(displayValue(currentInfo.ipAddress))")
             .disabled(true)
-        Text("\(text("status.currentSubnet")): \(displayValue(currentInfo.subnetMask))")
+        Text("\(appText("status.currentSubnet", languageSetting: appLanguage)): \(displayValue(currentInfo.subnetMask))")
             .disabled(true)
-        Text("\(text("status.currentRouter")): \(displayValue(currentInfo.router))")
+        Text("\(appText("status.currentRouter", languageSetting: appLanguage)): \(displayValue(currentInfo.router))")
             .disabled(true)
-        Text("\(text("status.currentDNS")): \(displayValue(currentInfo.dnsServersString))")
+        Text("\(appText("status.currentDNS", languageSetting: appLanguage)): \(displayValue(currentInfo.dnsServersString))")
             .disabled(true)
 
         Divider()
 
         if profiles.isEmpty {
-            Text(text("configuration.empty"))
+            Text(appText("configuration.empty", languageSetting: appLanguage))
                 .disabled(true)
         } else {
             ForEach(profiles) { profile in
                 Button {
                     apply(profile: profile)
                 } label: {
-                    Text((profile.id == currentProfile?.id ? "✓ " : "") + (profile.name.isEmpty ? text("configuration.untitled") : profile.name))
+                    Text((profile.id == currentProfile?.id ? "✓ " : "") + (profile.name.isEmpty ? appText("configuration.untitled", languageSetting: appLanguage) : profile.name))
                 }
                 .disabled(isSwitching)
             }
@@ -102,36 +102,32 @@ struct MenuBarMenuView: View {
         Button {
             switchToDHCP()
         } label: {
-            Text(text("action.dhcp"))
+            Text(appText("action.dhcp", languageSetting: appLanguage))
         }
         .disabled(isSwitching)
 
         Divider()
 
-        Button(text("status.refreshInfo")) {
+        Button(appText("status.refreshInfo", languageSetting: appLanguage)) {
             refresh()
         }
         .disabled(isSwitching)
 
-        Button(text("menu.openMainWindow")) {
+        Button(appText("menu.openMainWindow", languageSetting: appLanguage)) {
             openWindow(id: "main")
         }
 
-        Button(text("menu.settings")) {
+        Button(appText("menu.settings", languageSetting: appLanguage)) {
             openSettings()
         }
 
-        Button(text("menu.quit")) {
+        Button(appText("menu.quit", languageSetting: appLanguage)) {
             NSApplication.shared.terminate(nil)
         }
         .onAppear {
             profiles = NetworkAutomation.storedProfiles()
             refresh()
         }
-    }
-
-    func text(_ key: String) -> String {
-        appText(key, languageSetting: appLanguage)
     }
 
     func displayValue(_ value: String) -> String {

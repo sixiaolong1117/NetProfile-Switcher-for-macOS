@@ -21,7 +21,7 @@ struct AboutView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
 
             VStack(spacing: 4) {
-                Text(text("title"))
+                Text(appText("title", languageSetting: appLanguage))
                     .font(.title2.weight(.semibold))
 
                 Text(appText("about.version", languageSetting: appLanguage, appVersion))
@@ -31,19 +31,19 @@ struct AboutView: View {
 
             Form {
                 Section {
-                    Text(text("about.description"))
+                    Text(appText("about.description", languageSetting: appLanguage))
                         .fixedSize(horizontal: false, vertical: true)
                 }
 
                 Section {
-                    LabeledContent(text("about.author")) {
-                        Link(text("about.authorName"), destination: authorURL)
+                    LabeledContent(appText("about.author", languageSetting: appLanguage)) {
+                        Link(appText("about.authorName", languageSetting: appLanguage), destination: authorURL)
                     }
                 }
 
                 Section {
-                    Link(text("about.repository"), destination: repositoryURL)
-                    Link(text("about.license"), destination: licenseURL)
+                    Link(appText("about.repository", languageSetting: appLanguage), destination: repositoryURL)
+                    Link(appText("about.license", languageSetting: appLanguage), destination: licenseURL)
                 }
             }
             .formStyle(.grouped)
@@ -56,10 +56,6 @@ struct AboutView: View {
         let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
         let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"
         return "\(version) (\(build))"
-    }
-
-    func text(_ key: String) -> String {
-        appText(key, languageSetting: appLanguage)
     }
 }
 
@@ -74,33 +70,33 @@ struct SettingsView: View {
 
     var body: some View {
         Form {
-            Section(text("settings.languageSection")) {
-                Picker(text("settings.language"), selection: $appLanguage) {
-                    Text(text("language.system")).tag(AppLanguage.system.rawValue)
-                    Text(text("language.english")).tag(AppLanguage.english.rawValue)
-                    Text(text("language.simplifiedChinese")).tag(AppLanguage.simplifiedChinese.rawValue)
+            Section(appText("settings.languageSection", languageSetting: appLanguage)) {
+                Picker(appText("settings.language", languageSetting: appLanguage), selection: $appLanguage) {
+                    Text(appText("language.system", languageSetting: appLanguage)).tag(AppLanguage.system.rawValue)
+                    Text(appText("language.english", languageSetting: appLanguage)).tag(AppLanguage.english.rawValue)
+                    Text(appText("language.simplifiedChinese", languageSetting: appLanguage)).tag(AppLanguage.simplifiedChinese.rawValue)
                 }
             }
 
-            Section(text("settings.networkServices")) {
-                Toggle(text("settings.showDisabled"), isOn: $showDisabledNetworkServices)
-                Toggle(text("settings.refreshOnLaunch"), isOn: $refreshNetworkServicesOnLaunch)
+            Section(appText("settings.networkServices", languageSetting: appLanguage)) {
+                Toggle(appText("settings.showDisabled", languageSetting: appLanguage), isOn: $showDisabledNetworkServices)
+                Toggle(appText("settings.refreshOnLaunch", languageSetting: appLanguage), isOn: $refreshNetworkServicesOnLaunch)
             }
 
-            Section(text("settings.newConfigurations")) {
-                TextField(text("settings.defaultSubnet"), text: $defaultSubnetMask)
+            Section(appText("settings.newConfigurations", languageSetting: appLanguage)) {
+                TextField(appText("settings.defaultSubnet", languageSetting: appLanguage), text: $defaultSubnetMask)
             }
 
-            Section(text("settings.sudoersSection")) {
-                LabeledContent(text("settings.sudoersStatus")) {
+            Section(appText("settings.sudoersSection", languageSetting: appLanguage)) {
+                LabeledContent(appText("settings.sudoersStatus", languageSetting: appLanguage)) {
                     Text(sudoersStatus.isEmpty
-                        ? (SudoersAccessManager.isInstalled ? text("settings.sudoersInstalled") : text("settings.sudoersNotInstalled"))
+                        ? (SudoersAccessManager.isInstalled ? appText("settings.sudoersInstalled", languageSetting: appLanguage) : appText("settings.sudoersNotInstalled", languageSetting: appLanguage))
                         : sudoersStatus)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.trailing)
                 }
 
-                Button(SudoersAccessManager.isInstalled ? text("settings.sudoersRemove") : text("settings.sudoersInstall")) {
+                Button(SudoersAccessManager.isInstalled ? appText("settings.sudoersRemove", languageSetting: appLanguage) : appText("settings.sudoersInstall", languageSetting: appLanguage)) {
                     installOrRemoveSudoers()
                 }
                 .buttonStyle(.glass)
@@ -114,16 +110,12 @@ struct SettingsView: View {
     func installOrRemoveSudoers() {
         let shouldInstall = !SudoersAccessManager.isInstalled
         isSudoersBusy = true
-        sudoersStatus = shouldInstall ? text("settings.sudoersInstalling") : text("settings.sudoersRemoving")
+        sudoersStatus = shouldInstall ? appText("settings.sudoersInstalling", languageSetting: appLanguage) : appText("settings.sudoersRemoving", languageSetting: appLanguage)
 
         Task {
             let result = shouldInstall ? await SudoersAccessManager.install() : await SudoersAccessManager.remove()
             isSudoersBusy = false
             sudoersStatus = result.success ? "" : result.message
         }
-    }
-
-    func text(_ key: String) -> String {
-        appText(key, languageSetting: appLanguage)
     }
 }

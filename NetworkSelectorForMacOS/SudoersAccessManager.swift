@@ -125,8 +125,8 @@ enum SudoersAccessManager {
                 do {
                     try process.run()
                     process.waitUntilExit()
-                    let output = readText(from: outputPipe)
-                    let error = readText(from: errorPipe)
+                    let output = NetworkAutomation.readText(from: outputPipe)
+                    let error = NetworkAutomation.readText(from: errorPipe)
                     continuation.resume(returning: SudoersAccessResult(
                         success: process.terminationStatus == 0,
                         message: error.isEmpty ? output : error
@@ -136,10 +136,5 @@ enum SudoersAccessManager {
                 }
             }
         }
-    }
-
-    private static func readText(from pipe: Pipe) -> String {
-        String(data: pipe.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8)?
-            .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
     }
 }
