@@ -54,6 +54,10 @@
 "network.label" = "Network";
 "network.disabledService" = "%@ (Disabled)";
 "network.noServices" = "No Services";
+"menu.title" = "NetProfile Switcher";
+"menu.openMainWindow" = "Open Main Window";
+"menu.settings" = "Settings…";
+"menu.quit" = "Quit NetProfile Switcher";
 "settings.defaultSubnet" = "Default subnet mask";
 "settings.language" = "Application Language";
 "settings.languageSection" = "Language";
@@ -87,6 +91,8 @@
 "status.currentSubnet" = "Current Subnet Mask";
 "status.currentRouter" = "Current Gateway";
 "status.currentDNS" = "Current DNS";
+"status.currentProfile" = "Current Configuration";
+"status.currentProfileNone" = "No saved configuration matches (possibly manually changed)";
 "status.refreshInfo" = "Refresh";
 "status.noInfo" = "Unable to retrieve network information";
 "subtitle" = "Static profiles and DHCP for local network services";

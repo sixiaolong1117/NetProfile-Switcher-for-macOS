@@ -93,13 +93,13 @@ enum NetworkAutomation {
     }
 
     /// 获取当前网络服务的 IP、子网掩码、网关信息
-    static func getCurrentNetworkInfo(serviceName: String) -> NetworkInfoResult {
+    nonisolated static func getCurrentNetworkInfo(serviceName: String) -> NetworkInfoResult {
         // 清理输入，去除多余的空白字符
         let service = serviceName.trimmingCharacters(in: .whitespacesAndNewlines)
 
         // 验证输入，确保网络服务名称不为空
         guard !service.isEmpty else {
-            return NetworkInfoResult(ipAddress: "", subnetMask: "", router: "", dnsServers: [])
+            return .empty
         }
 
         // 构建系统命令，使用 networksetup 工具获取网络服务的配置信息
@@ -117,8 +117,20 @@ enum NetworkAutomation {
         return parseNetworkInfo(infoOutput: infoOutput, dnsOutput: dnsOutput)
     }
 
+    // 获取网络信息，并在信息为空时异步重试（DHCP 切换后网卡获取租约需要几秒）
+    nonisolated static func getCurrentNetworkInfoPolling(serviceName: String) async -> NetworkInfoResult {
+        var info = getCurrentNetworkInfo(serviceName: serviceName)
+        var attempts = 0
+        while info.isEmpty && attempts < 10 {
+            try? await Task.sleep(for: .seconds(0.5))
+            info = getCurrentNetworkInfo(serviceName: serviceName)
+            attempts += 1
+        }
+        return info
+    }
+
     // 执行系统命令并返回输出结果
-    private static func runCommand(command: String) -> String {
+    nonisolated private static func runCommand(command: String) -> String {
         // 构建并运行系统命令，捕获标准输出和错误输出
         let process = Process()
         let outputPipe = Pipe()
@@ -141,7 +153,7 @@ enum NetworkAutomation {
     }
 
     // 解析 networksetup 命令的输出，提取 IP 地址、子网掩码、网关和 DNS 服务器信息
-    private static func parseNetworkInfo(infoOutput: String, dnsOutput: String) -> NetworkInfoResult {
+    nonisolated private static func parseNetworkInfo(infoOutput: String, dnsOutput: String) -> NetworkInfoResult {
         // 初始化变量来存储解析结果
         var ipAddress = ""
         var subnetMask = ""
@@ -160,6 +172,11 @@ enum NetworkAutomation {
             }
         }
 
+        // 解析 getinfo 首行，判断是否为 DHCP 配置
+        let isDHCP = lines
+            .first(where: { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty })?
+            .trimmingCharacters(in: .whitespacesAndNewlines) == "DHCP Configuration"
+
         // 解析 DNS 输出
         var dnsServers: [String] = []
         let dnsLines = dnsOutput.components(separatedBy: .newlines)
@@ -175,11 +192,47 @@ enum NetworkAutomation {
             ipAddress: ipAddress,
             subnetMask: subnetMask,
             router: router,
-            dnsServers: dnsServers
+            dnsServers: dnsServers,
+            isDHCP: isDHCP
         )
     }
 
-    static func readText(from pipe: Pipe) -> String {
+    // 返回与当前网络信息完全一致的配置文件（四项全等）；DHCP 或不完整的配置不参与匹配
+    static func matchingProfile(for info: NetworkInfoResult, profiles: [NetworkProfile]) -> NetworkProfile? {
+        guard !info.isEmpty, !info.isDHCP else { return nil }
+
+        return profiles.first { profile in
+            let ip = profile.ipAddress.trimmingCharacters(in: .whitespacesAndNewlines)
+            let subnet = profile.subnetMask.trimmingCharacters(in: .whitespacesAndNewlines)
+            let router = profile.router.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !ip.isEmpty, !subnet.isEmpty, !router.isEmpty else { return false }
+
+            return ip.caseInsensitiveCompare(info.ipAddress) == .orderedSame
+                && subnet.caseInsensitiveCompare(info.subnetMask) == .orderedSame
+                && router.caseInsensitiveCompare(info.router) == .orderedSame
+                && dnsSet(profile.dnsServers) == dnsSet(info.dnsServers.joined(separator: " "))
+        }
+    }
+
+    // 将 DNS 字符串解析为集合（逗号/空格/换行/制表符分隔，忽略空项，大小写不敏感），用于顺序无关比较
+    nonisolated private static func dnsSet(_ value: String) -> Set<String> {
+        Set(value
+            .split { $0 == "," || $0 == " " || $0 == "\n" || $0 == "\t" }
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() }
+            .filter { !$0.isEmpty })
+    }
+
+    // 当前配置的显示文案：DHCP 显示 DHCP；命中的配置显示配置名；否则提示未匹配
+    static func currentProfileLabel(for info: NetworkInfoResult, profiles: [NetworkProfile], languageSetting: String) -> String {
+        if info.isEmpty { return "—" }
+        if info.isDHCP { return appText("action.dhcp", languageSetting: languageSetting) }
+        if let profile = matchingProfile(for: info, profiles: profiles) {
+            return profile.name.isEmpty ? appText("configuration.untitled", languageSetting: languageSetting) : profile.name
+        }
+        return appText("status.currentProfileNone", languageSetting: languageSetting)
+    }
+
+    nonisolated static func readText(from pipe: Pipe) -> String {
         String(data: pipe.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8)?
             .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
     }
@@ -195,10 +248,13 @@ enum NetworkAutomation {
 
 // 网络信息结构体
 struct NetworkInfoResult {
+    static let empty = NetworkInfoResult(ipAddress: "", subnetMask: "", router: "", dnsServers: [], isDHCP: false)
+
     let ipAddress: String
     let subnetMask: String
     let router: String
     let dnsServers: [String]
+    let isDHCP: Bool
 
     var dnsServersString: String {
         dnsServers.joined(separator: ", ")

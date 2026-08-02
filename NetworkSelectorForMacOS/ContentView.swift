@@ -56,7 +56,7 @@ struct ContentView: View {
     @State private var isLoadingServices = false
     @State private var statusMessage = ""
     @State private var isSwitching = false
-    @State private var currentNetworkInfo = NetworkInfoResult(ipAddress: "", subnetMask: "", router: "", dnsServers: [])
+    @State private var currentNetworkInfo = NetworkInfoResult.empty
     @State private var isLoadingInfo = false
 
     var body: some View {
@@ -186,18 +186,28 @@ struct ContentView: View {
     }
 
     func profileRow(_ profile: NetworkProfile) -> some View {
-        Label {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(profile.name.isEmpty ? text("configuration.untitled") : profile.name)
-                    .lineLimit(1)
+        HStack {
+            Label {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(profile.name.isEmpty ? text("configuration.untitled") : profile.name)
+                        .lineLimit(1)
 
-                Text(profile.ipAddress.isEmpty ? text("configuration.noIP") : profile.ipAddress)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
+                    Text(profile.ipAddress.isEmpty ? text("configuration.noIP") : profile.ipAddress)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
+            } icon: {
+                Image(systemName: "network")
             }
-        } icon: {
-            Image(systemName: "network")
+
+            Spacer(minLength: 8)
+
+            if profile.id == currentProfile?.id {
+                Image(systemName: "checkmark.circle.fill")
+                    .foregroundStyle(.tint)
+                    .accessibilityLabel(text("status.currentProfile"))
+            }
         }
         .contentShape(Rectangle())
         .disabled(isSwitching)
@@ -255,6 +265,7 @@ struct ContentView: View {
                     Text(text("status.noInfo"))
                         .foregroundStyle(.secondary)
                 } else {
+                    readOnlyRow(text("status.currentProfile"), value: currentProfileLabel)
                     readOnlyRow(text("status.currentIP"), value: currentNetworkInfo.ipAddress)
                     readOnlyRow(text("status.currentSubnet"), value: currentNetworkInfo.subnetMask)
                     readOnlyRow(text("status.currentRouter"), value: currentNetworkInfo.router)
@@ -294,6 +305,14 @@ struct ContentView: View {
     var selectedProfile: NetworkProfile? {
         guard let selectedProfileID else { return nil }
         return profiles.first { $0.id == selectedProfileID }
+    }
+
+    var currentProfile: NetworkProfile? {
+        NetworkAutomation.matchingProfile(for: currentNetworkInfo, profiles: profiles)
+    }
+
+    var currentProfileLabel: String {
+        NetworkAutomation.currentProfileLabel(for: currentNetworkInfo, profiles: profiles, languageSetting: appLanguage)
     }
 
     func text(_ key: String) -> String {
@@ -390,19 +409,10 @@ struct ContentView: View {
         }
 
         isLoadingInfo = true
-        DispatchQueue.global(qos: .userInitiated).async {
-            var info = NetworkAutomation.getCurrentNetworkInfo(serviceName: service)
-            var attempts = 0
-            while info.isEmpty && attempts < 10 {
-                Thread.sleep(forTimeInterval: 0.5)
-                info = NetworkAutomation.getCurrentNetworkInfo(serviceName: service)
-                attempts += 1
-            }
-
-            DispatchQueue.main.async {
-                currentNetworkInfo = info
-                isLoadingInfo = false
-            }
+        Task { @MainActor in
+            let info = await NetworkAutomation.getCurrentNetworkInfoPolling(serviceName: service)
+            currentNetworkInfo = info
+            isLoadingInfo = false
         }
     }
 
@@ -501,7 +511,7 @@ struct ContentView: View {
     func refreshCurrentNetworkInfo() {
         let service = serviceName.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !service.isEmpty else {
-            currentNetworkInfo = NetworkInfoResult(ipAddress: "", subnetMask: "", router: "", dnsServers: [])
+            currentNetworkInfo = NetworkInfoResult.empty
             return
         }
 
