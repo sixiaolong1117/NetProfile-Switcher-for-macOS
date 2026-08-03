@@ -107,7 +107,7 @@ struct ContentView: View {
                 networkServicePicker
             }
         }
-        .frame(minWidth: 700, minHeight: 480)
+        .frame(minWidth: 700, minHeight: 600)
         .onAppear {
             loadProfiles()
             if refreshNetworkServicesOnLaunch {
@@ -255,7 +255,7 @@ struct ContentView: View {
                 readOnlyRow(appText("editor.dns", languageSetting: appLanguage), value: profile.dnsServers)
             }
 
-            Section(appText("status.currentInfo", languageSetting: appLanguage)) {
+            Section {
                 if isLoadingInfo {
                     LabeledContent(appText("status.refreshInfo", languageSetting: appLanguage)) {
                         ProgressView()
@@ -271,21 +271,23 @@ struct ContentView: View {
                     readOnlyRow(appText("status.currentRouter", languageSetting: appLanguage), value: currentNetworkInfo.router)
                     readOnlyRow(appText("status.currentDNS", languageSetting: appLanguage), value: currentNetworkInfo.dnsServersString)
                 }
-            }
-
-            Section {
-                Button {
-                    switchToDHCP()
-                } label: {
-                    Label(appText("action.dhcp", languageSetting: appLanguage), systemImage: "arrow.triangle.2.circlepath")
-                }
-                .buttonStyle(.glass)
-                .disabled(isSwitching)
 
                 if !statusMessage.isEmpty {
                     Text(statusMessage)
                         .font(.callout)
                         .foregroundStyle(.secondary)
+                }
+            } header: {
+                HStack {
+                    Text(appText("status.currentInfo", languageSetting: appLanguage))
+                    Spacer()
+                    Button {
+                        switchToDHCP()
+                    } label: {
+                        Label(appText("action.dhcp", languageSetting: appLanguage), systemImage: "arrow.triangle.2.circlepath")
+                    }
+                    .buttonStyle(.glass)
+                    .disabled(isSwitching)
                 }
             }
         }
