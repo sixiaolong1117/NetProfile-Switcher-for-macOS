@@ -4,6 +4,7 @@
 //
 
 import AppKit
+import ServiceManagement
 import SwiftUI
 
 struct AboutView: View {
@@ -65,11 +66,34 @@ struct SettingsView: View {
     @AppStorage("refreshNetworkServicesOnLaunch") private var refreshNetworkServicesOnLaunch = true
     @AppStorage("defaultSubnetMask") private var defaultSubnetMask = "255.255.0.0"
 
+    @State private var launchAtLogin = LaunchAtLoginManager.isEnabled
+    @State private var launchAtLoginError = ""
+    @State private var isSyncingLaunchAtLogin = false
     @State private var sudoersStatus = ""
     @State private var isSudoersBusy = false
 
     var body: some View {
         Form {
+            Section(appText("settings.generalSection", languageSetting: appLanguage)) {
+                Toggle(appText("settings.launchAtLogin", languageSetting: appLanguage), isOn: $launchAtLogin)
+                if !launchAtLoginError.isEmpty {
+                    Text(launchAtLoginError)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                } else if LaunchAtLoginManager.status == .requiresApproval {
+                    Text(appText("settings.launchAtLoginRequiresApproval", languageSetting: appLanguage))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                } else {
+                    Text(appText("settings.launchAtLoginHint", languageSetting: appLanguage))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+
             Section(appText("settings.languageSection", languageSetting: appLanguage)) {
                 Picker(appText("settings.language", languageSetting: appLanguage), selection: $appLanguage) {
                     Text(appText("language.system", languageSetting: appLanguage)).tag(AppLanguage.system.rawValue)
@@ -105,6 +129,41 @@ struct SettingsView: View {
         }
         .formStyle(.grouped)
         .frame(width: 460)
+        .onAppear {
+            refreshLaunchAtLoginState()
+        }
+        .onChange(of: launchAtLogin) { _, newValue in
+            guard !isSyncingLaunchAtLogin else { return }
+            setLaunchAtLogin(enabled: newValue)
+        }
+    }
+
+    func refreshLaunchAtLoginState() {
+        isSyncingLaunchAtLogin = true
+        defer { isSyncingLaunchAtLogin = false }
+        if LaunchAtLoginManager.status == .requiresApproval {
+            launchAtLogin = true
+        } else {
+            launchAtLogin = LaunchAtLoginManager.isEnabled
+        }
+        launchAtLoginError = ""
+    }
+
+    func setLaunchAtLogin(enabled: Bool) {
+        do {
+            try LaunchAtLoginManager.setEnabled(enabled)
+            launchAtLoginError = ""
+        } catch {
+            launchAtLoginError = appText("settings.launchAtLoginFailed", languageSetting: appLanguage, error.localizedDescription)
+        }
+        // 同步真实状态，避免 onChange 递归
+        isSyncingLaunchAtLogin = true
+        defer { isSyncingLaunchAtLogin = false }
+        if LaunchAtLoginManager.status == .requiresApproval {
+            launchAtLogin = true
+        } else {
+            launchAtLogin = LaunchAtLoginManager.isEnabled
+        }
     }
 
     func installOrRemoveSudoers() {

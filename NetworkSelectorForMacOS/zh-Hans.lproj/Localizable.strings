@@ -59,8 +59,13 @@
 "menu.settings" = "设置…";
 "menu.quit" = "退出网络配置切换器";
 "settings.defaultSubnet" = "默认子网掩码";
+"settings.generalSection" = "通用";
 "settings.language" = "应用语言";
 "settings.languageSection" = "语言";
+"settings.launchAtLogin" = "开机自动启动";
+"settings.launchAtLoginFailed" = "更新登录项失败：%@";
+"settings.launchAtLoginHint" = "登录时自动打开。";
+"settings.launchAtLoginRequiresApproval" = "已添加到登录项，请在“系统设置 → 通用 → 登录项”中批准。";
 "settings.newConfigurations" = "新建配置";
 "settings.networkServices" = "网络服务";
 "settings.refreshOnLaunch" = "启动时刷新服务列表";
